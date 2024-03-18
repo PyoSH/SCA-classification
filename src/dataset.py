@@ -20,8 +20,8 @@ class AudioDataset(Dataset):
 class ProtoDataset(Dataset):
     def __init__(self, dataPath, featureParams):
         super().__init__()
-        self.audioPath = os.path.join(dataPath,f'TestSet_{1}_1.mp3')
-        self.labelPath = os.path.join(dataPath, f'text{1}.txt')
+        self.audioPath = os.path.join(dataPath,'audio',f'TestSet_{1}_1.mp3')
+        self.labelPath = os.path.join(dataPath,'label3', f'test{1}.txt')
         self.featureParams = featureParams
 
         self.featureVector = get_mp3_to_mfcc(self.audioPath, featureParams.sr,

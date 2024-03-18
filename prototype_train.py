@@ -10,10 +10,11 @@ hidden_size = 128
 num_layers = 2
 num_classes = 3
 batch_size = 32
+num_epochs = 10
 
 mfcc_conts = MFCC_params(48000, 24, 512, 2048)
 
-datapath_local = 'C:\\Users\\KRISO\\Desktop\\유진\\label3'
+datapath_local = "C:/Users/user/Desktop/3. 작업판단/data"
 
 if __name__ == '__main__':
 
@@ -39,19 +40,18 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     # 모델 인스턴스 생성
-    model = LSTMModel(input_size=mfcc_conts.n_mfcc, hidden_size=hidden_size, num_layers=num_layers, num_classes=num_classes)
+    model = LSTMModel(input_dim=mfcc_conts.n_mfcc, hidden_dim=hidden_size, num_layers=num_layers, output_dim=num_classes)
 
     # 손실 함수 및 최적화 알고리즘 정의
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # 모델 훈련
-    num_epochs = 10  # 수정 가능
-    train_model(model, train_loader, criterion, optimizer, num_epochs)
+    train_model(model=model, train_loader=train_loader, test_loader=test_loader ,criterion=criterion, optimizer=optimizer, num_epochs=num_epochs)
 
     # 모델 평가
     evaluate_model(model, test_loader)
 
     # 모델 저장
-    model_saved_path = os.path.join(datapath_local,'learned_LSTM',f'1_{1}.pth')
+    model_saved_path = os.path.join(datapath_local,'learned',f'1_{1}.pth')
     torch.save(model.state_dict(), model_saved_path)
