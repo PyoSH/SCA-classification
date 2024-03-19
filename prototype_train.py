@@ -11,16 +11,17 @@ num_layers = 2
 num_classes = 3
 batch_size = 32
 num_epochs = 10
+class_labels = ['idling', 'cutting', 'HardCutting']
 
-mfcc_conts = MFCC_params(48000, 24, 512, 2048)
+mfcc_conts = MFCC_params(48100, 24, 512, 2048)
 
 datapath_local = "C:/Users/user/Desktop/3. 작업판단/data"
 
 if __name__ == '__main__':
 
     # 데이터셋 구성 & 음향+라벨 전처리
-    datas = ProtoDataset(datapath_local, mfcc_conts)
-    datas.labelProcessing()
+    datas = ProtoDataset(datapath_local, class_labels, mfcc_conts)
+    datas.label_processed = labelProcessing(datas.label_raw, datas.featureVector.shape[0], mfcc_conts)
 
     # 데이터셋 분할
     X_train, X_test, y_train, y_test = train_test_split(datas.featureVector, datas.label_processed, test_size=0.2, random_state=42)
@@ -47,11 +48,18 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # 모델 훈련
-    train_model(model=model, train_loader=train_loader, test_loader=test_loader ,criterion=criterion, optimizer=optimizer, num_epochs=num_epochs)
+    train_model(model=model, train_loader=train_loader, test_loader=test_loader, criterion=criterion, optimizer=optimizer, num_epochs=num_epochs)
 
     # 모델 평가
     evaluate_model(model, test_loader)
+    input_size = X_train.shape[2]
+    print(f"Input size: {input_size}")
+    print("X_train shape:", X_train.shape)
+    print("X_test shape:", X_test.shape)
+    print("Test indices:", len(X_test))
 
     # 모델 저장
-    model_saved_path = os.path.join(datapath_local,'learned',f'1_{1}.pth')
+    # model_saved_path = datapath_local+'/learned'+f'/model_1_{1}.pth'
+    model_saved_path = 'C:\\Users\\user\\PycharmProjects\\rnn_followup\\model_1.pth'
+    print(model_saved_path)
     torch.save(model.state_dict(), model_saved_path)

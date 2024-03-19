@@ -63,5 +63,5 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, num_epoc
         print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}, Test Accuracy: {test_accuracy:.2f}%')
 
     # training loss 및 test accuracy 그래프 그리기
-    plot_graphs(train_losses, test_accuracies)
+    #plot_graphs(train_losses, test_accuracies)
 

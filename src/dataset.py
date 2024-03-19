@@ -16,18 +16,30 @@ class AudioDataset(Dataset):
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
 
-
+class FeatureDataset(Dataset):
+    def __init__(self, frame, class_labels, featrureParams):
+        self.frame = frame
+        self.featureParams = featrureParams
+        self.featureVector = get_frame_to_mfcc(self.frame, self.featureParams.sr, self.featureParams.n_mfcc,
+                                               self.featureParams.hop_length, self.featureParams.len_fft)
+        self.label_raw = None
+        self.label_processed = None
+        self.class_labels = class_labels # 이거 나중에 통짜로 써먹을 수 있게 수정 필요.
+    def __len__(self):
+        return len(self.featureVector)
+    def __getitem__(self, idx):
+        return self.featureVector[idx], self.label_processed[idx]
 class ProtoDataset(Dataset):
-    def __init__(self, dataPath, featureParams):
-        super().__init__()
+    def __init__(self, dataPath, class_labels, featureParams):
         self.audioPath = os.path.join(dataPath,'audio',f'TestSet_{1}_1.mp3')
         self.labelPath = os.path.join(dataPath,'label3', f'test{1}.txt')
         self.featureParams = featureParams
 
-        self.featureVector = get_mp3_to_mfcc(self.audioPath, featureParams.sr,
-                                             featureParams.n_mfcc, featureParams.hop_length, featureParams.len_fft)
+        self.featureVector = get_mp3_to_mfcc(self.audioPath, self.featureParams.sr, self.featureParams.n_mfcc,
+                                             self.featureParams.hop_length, self.featureParams.len_fft).T # 전치!!!
         self.label_raw = pd.read_csv(self.labelPath, header=None, sep='\t')
         self.label_processed = None
+        self.class_labels = class_labels # 이거 나중에 통짜로 써먹을 수 있게 수정 필요.
 
     def __len__(self):
         return len(self.featureVector)
@@ -35,16 +47,17 @@ class ProtoDataset(Dataset):
     def __getitem__(self, idx):
         return self.featureVector[idx], self.label_processed[idx]
 
-    def labelProcessing(self):
-        self.label_raw.columns = ['start', 'end', 'label']
+def labelProcessing(label_raw, vectorShape, featureParams):
+    label_raw.columns = ['start', 'end', 'label']
 
-        # 레이블을 숫자로 매핑
-        label_mapping = {'idling': 0, 'cutting': 1, 'hardcutting': 2}
+    # 레이블을 숫자로 매핑
+    label_mapping = {'idling': 0, 'cutting': 1, 'hardcutting': 2}
 
-        # 레이블 데이터 준비
-        self.label_processed = np.zeros((self.featureVector.shape[0],))  # MFCC 프레임 수에 맞는 레이블 배열 초기화
-        for _, row in self.label_raw.iterrows():
-            start_frame = int(row['start'] * self.featureParams.sr / self.featureParams.hop_length)
-            end_frame = int(row['end'] * self.featureParams.sr / self.featureParams.hop_length)
-            self.label_processed[start_frame:end_frame] = label_mapping[row['label']]
+    # 레이블 데이터 준비
+    label_processed = np.zeros(vectorShape)  # MFCC 프레임 수에 맞는 레이블 배열 초기화 , num_frames로 해놨는데 괜찮으려나?
+    for _, row in label_raw.iterrows():
+        start_frame = int(row['start'] * featureParams.sr / featureParams.hop_length) # audio frame 단위.
+        end_frame = int(row['end'] * featureParams.sr / featureParams.hop_length)
+        label_processed[start_frame:end_frame] = label_mapping[row['label']]
 
+    return label_processed
