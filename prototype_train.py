@@ -29,13 +29,17 @@ if __name__ == '__main__':
 
     # 예를 들어, 시퀀스 길이가 1인 경우 ????
     X_train = X_train[:, np.newaxis, :mfcc_conts.n_mfcc]
+    # y_train = y_train[:, np.newaxis]
     X_test = X_test[:, np.newaxis, :mfcc_conts.n_mfcc]
+    # y_test = y_test[:, np.newaxis]
 
     print("X_train shape before creating AudioDataset:", X_train.shape)
 
     # 데이터셋 객체 생성
     train_dataset = AudioDataset(X_train, y_train, input_size=mfcc_conts.n_mfcc)
     test_dataset = AudioDataset(X_test, y_test, input_size=mfcc_conts.n_mfcc)
+    # train_dataset = InputDataset(X_train, y_train, batch_size=batch_size, frame_size=0.005, sample_rate=mfcc_conts.sr, input_size=mfcc_conts.n_mfcc)
+    # test_dataset = InputDataset(X_test, y_test, batch_size=batch_size, frame_size=0.005, sample_rate=mfcc_conts.sr, input_size=mfcc_conts.n_mfcc)
 
     # 데이터로더 객체 생성
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)

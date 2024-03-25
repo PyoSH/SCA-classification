@@ -3,7 +3,6 @@ import torch
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 from src.feature_extraction import *
-import sys
 
 class AudioDataset(Dataset):
     def __init__(self, X, y, input_size):
@@ -16,24 +15,21 @@ class AudioDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
-
-class FeatureDataset(Dataset):
-    def __init__(self, frame, class_labels, featrureParams):
-        self.frame = frame
-        self.featureParams = featrureParams
-        self.featureVector = get_frame_to_mfcc(self.frame, self.featureParams.sr, self.featureParams.n_mfcc,
-                                               self.featureParams.hop_length, self.featureParams.len_fft)
-        self.label_raw = None
-        self.label_processed = None
-        self.class_labels = class_labels # 이거 나중에 통짜로 써먹을 수 있게 수정 필요.
+class InputDataset(Dataset):
+    def __init__(self, X, y, batch_size, frame_size, sample_rate, input_size):
+        # self.X = torch.tensor(X[:batch_size, :int(frame_size*sample_rate), :input_size], dtype=torch.float64)
+        # self.y = torch.tensor(y[:batch_size, :int(frame_size*sample_rate), :], dtype=torch.long)
+        self.X = torch.tensor(X[:batch_size, :, :input_size], dtype=torch.float32)
+        self.y = torch.tensor(y, dtype=torch.long)
     def __len__(self):
-        return len(self.featureVector)
-    def __getitem__(self, idx):
-        return self.featureVector[idx], self.label_processed[idx]
+        return len(self.y)
+    def __getitem__(self, item):
+        return self.X[item], self.y[item]
+
 class ProtoDataset(Dataset):
-    def __init__(self, dataPath, class_labels, featureParams):
-        self.audioPath = os.path.join(dataPath,'audio',f'TestSet_{1}_1.mp3')
-        self.labelPath = os.path.join(dataPath,'label', f'test{1}.txt')
+    def __init__(self, dataPath, class_labels, featureParams, item=1):
+        self.audioPath = os.path.join(dataPath,'audio',f'TestSet_{item}_1.mp3')
+        self.labelPath = os.path.join(dataPath,'label', f'test{item}.txt')
         self.featureParams = featureParams
 
         self.featureVector = get_mp3_to_mfcc(self.audioPath, self.featureParams.sr, self.featureParams.n_mfcc,

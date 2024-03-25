@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
 import torch.optim as optim
 import matplotlib.pyplot as plt
 
@@ -16,6 +17,7 @@ def evaluate_model(model, test_loader):
             correct += (predicted == labels).sum().item()
     accuracy = correct / total * 100
     return accuracy
+
 
 def plot_graphs(train_losses, test_accuracies):
     plt.figure(figsize=(12, 6))
