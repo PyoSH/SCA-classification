@@ -10,12 +10,13 @@ hidden_size = 128
 num_layers = 2
 num_classes = 3
 batch_size = 32
-num_epochs = 10
+num_epochs = 3
 class_labels = ['idling', 'cutting', 'HardCutting']
 
-mfcc_conts = MFCC_params(48100, 24, 512, 2048)
+mfcc_conts = MFCC_params(44100, 40, 512, 2048)
 
-datapath_local = "C:/Users/user/Desktop/3. 작업판단/data"
+# datapath_local = "C:/Users/user/Desktop/3. 작업판단/data"
+datapath_local = 'data'
 
 if __name__ == '__main__':
 
@@ -51,7 +52,7 @@ if __name__ == '__main__':
     train_model(model=model, train_loader=train_loader, test_loader=test_loader, criterion=criterion, optimizer=optimizer, num_epochs=num_epochs)
 
     # 모델 평가
-    evaluate_model(model, test_loader)
+    # evaluate_model(model, test_loader)
     input_size = X_train.shape[2]
     print(f"Input size: {input_size}")
     print("X_train shape:", X_train.shape)
@@ -60,6 +61,6 @@ if __name__ == '__main__':
 
     # 모델 저장
     # model_saved_path = datapath_local+'/learned'+f'/model_1_{1}.pth'
-    model_saved_path = 'C:\\Users\\user\\PycharmProjects\\rnn_followup\\model_1.pth'
+    model_saved_path = os.path.join('results', f'model_1_{1}.pth')
     print(model_saved_path)
     torch.save(model.state_dict(), model_saved_path)

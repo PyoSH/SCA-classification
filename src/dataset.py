@@ -3,10 +3,11 @@ import torch
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 from src.feature_extraction import *
+import sys
 
 class AudioDataset(Dataset):
     def __init__(self, X, y, input_size):
-        # self.X를 사용하여 마지막 차원을 n_mfcc 대신에 input_size로 설정 -> 텐서 크기 맞추기 위한 임시방편으로 보임.
+        # self.X를 사용하여 마지막 차원 input_size로 설정 -> 텐서 크기 맞추기 위한 임시방편으로 보임.
         self.X = torch.tensor(X[:, :, :input_size], dtype=torch.float32)
         self.y = torch.tensor(y, dtype=torch.long)
 
@@ -32,7 +33,7 @@ class FeatureDataset(Dataset):
 class ProtoDataset(Dataset):
     def __init__(self, dataPath, class_labels, featureParams):
         self.audioPath = os.path.join(dataPath,'audio',f'TestSet_{1}_1.mp3')
-        self.labelPath = os.path.join(dataPath,'label3', f'test{1}.txt')
+        self.labelPath = os.path.join(dataPath,'label', f'test{1}.txt')
         self.featureParams = featureParams
 
         self.featureVector = get_mp3_to_mfcc(self.audioPath, self.featureParams.sr, self.featureParams.n_mfcc,
@@ -54,7 +55,7 @@ def labelProcessing(label_raw, vectorShape, featureParams):
     label_mapping = {'idling': 0, 'cutting': 1, 'hardcutting': 2}
 
     # 레이블 데이터 준비
-    label_processed = np.zeros(vectorShape)  # MFCC 프레임 수에 맞는 레이블 배열 초기화 , num_frames로 해놨는데 괜찮으려나?
+    label_processed = np.zeros(vectorShape)  # 모델 입력 차원(= 특징 벡터 열 개수)에 맞는 레이블 배열 초기화
     for _, row in label_raw.iterrows():
         start_frame = int(row['start'] * featureParams.sr / featureParams.hop_length) # audio frame 단위.
         end_frame = int(row['end'] * featureParams.sr / featureParams.hop_length)
