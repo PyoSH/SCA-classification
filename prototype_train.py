@@ -15,7 +15,6 @@ class_labels = ['idling', 'cutting', 'HardCutting']
 
 mfcc_conts = MFCC_params(44100, 40, 512, 2048)
 
-# datapath_local = "C:/Users/user/Desktop/3. 작업판단/data"
 datapath_local = 'data'
 
 if __name__ == '__main__':
@@ -64,7 +63,6 @@ if __name__ == '__main__':
     print("Test indices:", len(X_test))
 
     # 모델 저장
-    # model_saved_path = datapath_local+'/learned'+f'/model_1_{1}.pth'
     model_saved_path = os.path.join('results', f'model_1_{1}.pth')
     print(model_saved_path)
     torch.save(model.state_dict(), model_saved_path)

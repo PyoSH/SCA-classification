@@ -61,15 +61,9 @@ def get_frame_to_mfcc(data, samplingRate, num_cepstralCoefficient, hop_length, l
     frame_normalized = (frame_float - np.mean(frame_float)) / np.std(frame_float)
 
     # n_fft 값을 조정
-    # 승현 - 이거 이상하다. hop_length < n_fft인데. 겹치는 길이가 전체 윈도우 길이보다 길면 이상하잖아. default : hop_length = win_length // 4
-    # 여기서는 또 hop_length를 100ms으로 하네? n_fft를 1024로 한건 주파수 영역 분해능을 늘리기 위해선듯?
-    mfccs = librosa.feature.mfcc(y=frame_normalized, sr=samplingRate, hop_length=hop_length, n_mfcc=num_cepstralCoefficient,
-                                 n_fft=len_fft)
+    featureVector = librosa.feature.mfcc(y=frame_normalized, sr=samplingRate, hop_length=hop_length, n_mfcc=num_cepstralCoefficient,
+                                 n_fft=len_fft).T # 전치!!!
 
-    # 데이터 차원 변경 (배치 차원 추가)
-    mfccs = mfccs[np.newaxis, :, :]
-
-    # PyTorch 텐서로 변환
-    mfccs_tensor = torch.tensor(mfccs, dtype=torch.float32)
-
-    return mfccs_tensor
+    #차원 추가!!!
+    featureVector = featureVector[np.newaxis, :, :]
+    return featureVector
