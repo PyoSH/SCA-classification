@@ -10,18 +10,21 @@ hidden_size = 128
 num_layers = 2
 num_classes = 3
 batch_size = 32
-num_epochs = 3
-class_labels = ['idling', 'cutting', 'HardCutting']
+num_epochs = 10
+# label_class = {'base': 0, 'idling': 1, 'cutting': 2, 'hardcutting': 3}
+label_class = {'idling': 0, 'cutting': 1, 'hardcutting': 2}
 
 mfcc_conts = MFCC_params(44100, 40, 512, 2048)
 
 datapath_local = 'data'
+dataName = 1
 
 if __name__ == '__main__':
 
     # 데이터셋 구성 & 음향+라벨 전처리
-    datas = ProtoDataset(datapath_local, class_labels, mfcc_conts)
-    datas.label_processed = labelProcessing(datas.label_raw, datas.featureVector.shape[0], mfcc_conts)
+    datas = ProtoDataset(datapath_local, mfcc_conts, item= dataName)
+    datas.label_processed = labelProcessing(datas.label_raw, datas.featureVector.shape[0], label_class,
+                                            mfcc_conts.sr, len_frame=mfcc_conts.hop_length)
 
     # 데이터셋 분할
     X_train, X_test, y_train, y_test = train_test_split(datas.featureVector, datas.label_processed, test_size=0.2, random_state=42)
@@ -63,6 +66,6 @@ if __name__ == '__main__':
     print("Test indices:", len(X_test))
 
     # 모델 저장
-    model_saved_path = os.path.join('results', f'model_1_{1}.pth')
+    model_saved_path = os.path.join('results', f'model_{dataName}_{1}.pth')
     print(model_saved_path)
     torch.save(model.state_dict(), model_saved_path)

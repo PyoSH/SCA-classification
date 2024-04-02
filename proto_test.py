@@ -12,10 +12,12 @@ num_classes = 3
 batch_size = 32
 num_epochs = 10
 seq_len = int(0.05 * mfcc_conts.sr)
-class_labels = ['idling', 'cutting', 'HardCutting']
+
+# label_class = {'base': 0, 'idling': 1, 'cutting': 2, 'hardcutting': 3}
+label_class = {'idling': 0, 'cutting': 1, 'hardcutting': 2}
 
 datapath = 'data'
-model_saved_path = os.path.join('results', f'model_1_{1}.pth')
+model_saved_path = os.path.join('results', f'model_{1}_1.pth')
 
 if __name__ == '__main__':
 
@@ -28,8 +30,9 @@ if __name__ == '__main__':
 
     for item in range (2,10):
         # 데이터셋 구성 & 음향+라벨 전처리
-        datas = ProtoDataset(datapath, class_labels, mfcc_conts, item)
-        datas.label_processed = labelProcessing(datas.label_raw, datas.featureVector.shape[0], mfcc_conts)
+        datas = ProtoDataset(datapath, mfcc_conts, item)
+        datas.label_processed = labelProcessing(datas.label_raw, datas.featureVector.shape[0], label_class=label_class,
+                                                sampleRate=mfcc_conts.sr, len_frame=mfcc_conts.hop_length)
 
         features = datas.featureVector[:, np.newaxis, :mfcc_conts.n_mfcc]
 

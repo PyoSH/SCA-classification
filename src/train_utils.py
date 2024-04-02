@@ -76,15 +76,17 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, num_epoc
     for epoch in range(num_epochs):
         model.train()  # 모델을 training 모드로 설정
 
+        idx = 0
         for inputs, labels in train_loader:
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-
+            idx += 1
             # 현재 epoch의 training loss 기록
-            train_losses.append(loss.item())
+            if idx == len(train_loader):
+                train_losses.append(loss.item())
 
 
         # 현재 epoch의 test accuracy 계산 및 기록
