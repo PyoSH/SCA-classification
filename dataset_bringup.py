@@ -6,12 +6,13 @@ from src.feature_extraction import *
 # label_class = {'base': 0, 'idling': 1, 'cutting': 2, 'hardcutting': 3}
 label_class = {'idling': 0, 'cutting': 1, 'hardcutting': 2}
 
-mp3Path = os.path.join('data','audio',f'TestSet_{1}_1.mp3')
-labelPath = os.path.join('data','label',f'test{1}.txt')
-
 sample_rate = 44100
 len_frame_time = 50 * 0.001 # 50 ms
 len_frame_sample = int(len_frame_time * sample_rate) # sample num = 2205
+
+mp3Path = os.path.join('data','audio',f'TestSet_{1}_1.mp3')
+labelPath = os.path.join('data','label',f'test{1}.txt')
+
 
 if __name__ == '__main__':
 
