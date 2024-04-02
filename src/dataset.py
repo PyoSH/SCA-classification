@@ -17,8 +17,6 @@ class AudioDataset(Dataset):
         return self.X[idx], self.y[idx]
 class InputDataset(Dataset):
     def __init__(self, X, y, batch_size, frame_size, sample_rate, input_size):
-        # self.X = torch.tensor(X[:batch_size, :int(frame_size*sample_rate), :input_size], dtype=torch.float64)
-        # self.y = torch.tensor(y[:batch_size, :int(frame_size*sample_rate), :], dtype=torch.long)
         self.X = torch.tensor(X[:batch_size, :, :input_size], dtype=torch.float32)
         self.y = torch.tensor(y, dtype=torch.long)
     def __len__(self):
