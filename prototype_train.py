@@ -4,51 +4,42 @@ from src.feature_extraction import *
 from src.dataset import *
 
 import numpy as np
+import copy
 
 # model
 hidden_size = 128
 num_layers = 2
 num_classes = 3
-batch_size = 32
-num_epochs = 10
-# label_class = {'base': 0, 'idling': 1, 'cutting': 2, 'hardcutting': 3}
-label_class = {'idling': 0, 'cutting': 1, 'hardcutting': 2}
+batch_size = 128
+num_epochs = 4
 
-mfcc_conts = MFCC_params(44100, 40, 512, 2048)
+mfcc_const = MFCC_params(44100, 40, 512, 2048)
 
-datapath_local = 'data'
-dataName = 1
+datapath_local = os.path.join('data','set_50ms','data_50ms.npy')
 
 if __name__ == '__main__':
 
-    # 데이터셋 구성 & 음향+라벨 전처리
-    datas = ProtoDataset(datapath_local, mfcc_conts, item= dataName)
-    datas.label_processed = labelProcessing(datas.label_raw, datas.featureVector.shape[0], label_class,
-                                            mfcc_conts.sr, len_frame=mfcc_conts.hop_length)
+    # 데이터셋 구성 & 음향 전처리
+    datas_law = np.load(datapath_local)
+    data_audio = datas_law[:, 0:-1] #오디오 피처 그대로임, 이거 MFCC로 특징 벡터 뽑아야 함
+    data_label = datas_law[:, -1]
+    data_featureVector = audioProcessing(data_audio, mfcc_const)
+    print(data_featureVector.shape)
+    ## (batch size, seq len, num_feature) = (128, data_featureVector.shape[1],mfcc_conts.n_mfcc)
 
     # 데이터셋 분할
-    X_train, X_test, y_train, y_test = train_test_split(datas.featureVector, datas.label_processed, test_size=0.2, random_state=42)
-
-    # 예를 들어, 시퀀스 길이가 1인 경우 ????
-    X_train = X_train[:, np.newaxis, :mfcc_conts.n_mfcc]
-    # y_train = y_train[:, np.newaxis]
-    X_test = X_test[:, np.newaxis, :mfcc_conts.n_mfcc]
-    # y_test = y_test[:, np.newaxis]
-
-    print("X_train shape before creating AudioDataset:", X_train.shape)
+    X_train, X_test, y_train, y_test = train_test_split(data_featureVector, data_label, test_size=0.2, random_state=42)
 
     # 데이터셋 객체 생성
-    train_dataset = AudioDataset(X_train, y_train, input_size=mfcc_conts.n_mfcc)
-    test_dataset = AudioDataset(X_test, y_test, input_size=mfcc_conts.n_mfcc)
-    # train_dataset = InputDataset(X_train, y_train, batch_size=batch_size, frame_size=0.005, sample_rate=mfcc_conts.sr, input_size=mfcc_conts.n_mfcc)
-    # test_dataset = InputDataset(X_test, y_test, batch_size=batch_size, frame_size=0.005, sample_rate=mfcc_conts.sr, input_size=mfcc_conts.n_mfcc)
+    train_dataset = AudioDataset(X_train, y_train, input_size=mfcc_const.n_mfcc)
+    test_dataset = AudioDataset(X_test, y_test, input_size=mfcc_const.n_mfcc)
 
     # 데이터로더 객체 생성
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     # 모델 인스턴스 생성
-    model = LSTMModel(input_dim=mfcc_conts.n_mfcc, hidden_dim=hidden_size, num_layers=num_layers, output_dim=num_classes)
+    model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=hidden_size, num_layers=num_layers, output_dim=num_classes)
 
     # 손실 함수 및 최적화 알고리즘 정의
     criterion = nn.CrossEntropyLoss()
@@ -65,7 +56,7 @@ if __name__ == '__main__':
     print("X_test shape:", X_test.shape)
     print("Test indices:", len(X_test))
 
-    # 모델 저장
-    model_saved_path = os.path.join('results', f'model_{dataName}_{1}.pth')
+    # 모델 저장 - 중간중간 저장하는 기능 필요?
+    model_saved_path = os.path.join('results', f'model_trained.pth')
     print(model_saved_path)
     torch.save(model.state_dict(), model_saved_path)

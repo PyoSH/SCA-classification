@@ -30,7 +30,11 @@ def save_mp3_to_mfcc(mp3_dir, save_dir, sr, n_mfcc, hop_length, len_fft):
         print(f"Conversion successful: {mp3_dir} -> {mfcc_normalized_file_path}")
     except Exception as e:
         print(f"Error processing {mp3_dir}: {e}")
-
+'''
+유진님 코드에서 가져와 구현해놨고, 이전 ProtoDataset에서 사용했으나
+frame_to_mfcc가 seq_len 조절이 가능해서 안씀
+표승현 2024-04-04 
+'''
 def get_mp3_to_mfcc(mp3_dir, sr, n_mfcc, hop_length, len_fft):
     try:
         # Load audio file using librosa with specified parameters
@@ -58,10 +62,14 @@ def get_frame_to_mfcc(data, samplingRate, num_cepstralCoefficient, hop_length, l
     frame_float = data.astype(np.float32) / 32767.0
 
     # normalization 추가!!
-    frame_normalized = (frame_float - np.mean(frame_float)) / np.std(frame_float)
+    frame_norm = None
+    if np.max(frame_float) == 0:
+        frame_norm = frame_float
+    else:
+        frame_norm = (frame_float - np.mean(frame_float)) / np.std(frame_float)
 
     # n_fft 값을 조정
-    featureVector = librosa.feature.mfcc(y=frame_normalized, sr=samplingRate, hop_length=hop_length, n_mfcc=num_cepstralCoefficient,
+    featureVector = librosa.feature.mfcc(y=frame_norm, sr=samplingRate, hop_length=hop_length, n_mfcc=num_cepstralCoefficient,
                                  n_fft=len_fft).T # 전치!!!
 
     #차원 추가!!!

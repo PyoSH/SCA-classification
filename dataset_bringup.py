@@ -1,6 +1,7 @@
-import copy
-
-import numpy as np
+'''
+오디오, 라벨 데이터를 집어넣었을 때 프레임 크기를 맞춰서 나눠주는 코드.
+표승현 2024-04-04
+'''
 
 from src.dataset import *
 from src.feature_extraction import *
@@ -9,7 +10,7 @@ from src.feature_extraction import *
 label_class = {'idling': 0, 'cutting': 1, 'hardcutting': 2}
 
 sample_rate = 44100
-len_frame_time = 50 * 0.001 # 50 ms
+len_frame_time = 100 * 0.001 # 50 ms
 len_frame_sample = int(len_frame_time * sample_rate) # sample num = 2205
 
 dataPath = 'data'
@@ -18,6 +19,7 @@ if __name__ == '__main__':
 
 
     dataSetMat = None
+    iterated = False
 
     for item in range(1,10):
 
@@ -45,8 +47,9 @@ if __name__ == '__main__':
 
         print(f'{item:2d}th dataset processing : num frame {audio_processed.shape[0]:.4f}, num_label {label_processed.shape}, temp dataset {temp2dMat.shape}')
 
-        if item == 1:
+        if (item == 1) or (iterated == False):
             dataSetMat = copy.deepcopy(temp2dMat)
+            iterated = True
         else:
             dataSetMat = np.concatenate((dataSetMat, temp2dMat), axis=0)
 

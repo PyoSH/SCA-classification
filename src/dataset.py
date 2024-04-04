@@ -1,29 +1,21 @@
 import os
 import torch
+import copy
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 from src.feature_extraction import *
 
 class AudioDataset(Dataset):
     def __init__(self, X, y, input_size):
-        # self.X를 사용하여 마지막 차원 input_size로 설정 -> 텐서 크기 맞추기 위한 임시방편으로 보임.
+        #  목표 입력 텐서는 batch size 128 for 50ms , frame size = 2205, input_size = 40 (128, 2205??, 40)
         self.X = torch.tensor(X[:, :, :input_size], dtype=torch.float32)
-        self.y = torch.tensor(y, dtype=torch.long)
+        self.y = torch.tensor(y, dtype=torch.long) # long -> float32 -> long
 
     def __len__(self):
         return len(self.X)
 
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
-class InputDataset(Dataset):
-    def __init__(self, X, y, batch_size, frame_size, sample_rate, input_size):
-        self.X = torch.tensor(X[:batch_size, :, :input_size], dtype=torch.float32)
-        self.y = torch.tensor(y, dtype=torch.long)
-    def __len__(self):
-        return len(self.y)
-    def __getitem__(self, item):
-        return self.X[item], self.y[item]
-
 class ProtoDataset(Dataset):
     def __init__(self, dataPath, featureParams, item=1):
         self.audioPath = os.path.join(dataPath,'audio',f'TestSet_{item}_1.mp3')
@@ -41,6 +33,11 @@ class ProtoDataset(Dataset):
     def __getitem__(self, idx):
         return self.featureVector[idx], self.label_processed[idx]
 
+'''
+labelProcessing 2024-04-04 표승현
+예측 수행할 때 라밸 데이터를 특징 벡터에 맞게 나눠주는 함수
+dataset_bringup에서 사용
+'''
 def labelProcessing(label_raw, vectorShape, label_class, sampleRate, len_frame):
     label_raw.columns = ['start', 'end', 'label']
 
@@ -55,6 +52,27 @@ def labelProcessing(label_raw, vectorShape, label_class, sampleRate, len_frame):
         label_processed[start_frame:end_frame] = label_class[row['label']]
 
     return label_processed
+
+'''
+audioProcessing 2024-04-04 표승현
+dataset_bringup으로 처리한 행렬 중 음향 데이터를 mfcc로 특징 추출하는 함수
+'''
+def audioProcessing(data, mfcc_const):
+    data_featureVector = None
+    for idx in range(data.shape[0]):
+        temp_data = data[idx, :]
+        temp_featureVector = get_frame_to_mfcc(temp_data, samplingRate=mfcc_const.sr,
+                                               num_cepstralCoefficient=mfcc_const.n_mfcc,
+                                               hop_length=mfcc_const.hop_length, len_fft=mfcc_const.len_fft)
+        if idx == 0:
+            data_featureVector = copy.deepcopy(temp_featureVector)
+        else:
+            data_featureVector = np.append(data_featureVector, temp_featureVector, axis=0)
+
+        if idx % 100 == 0:
+            print(f'{idx + 1}th audio frame processed! don\'t worry ;)')
+
+    return data_featureVector
 
 def zeropad1d(A, length):
     retVal = np.zeros(length)
