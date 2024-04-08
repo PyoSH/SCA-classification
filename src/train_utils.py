@@ -1,11 +1,12 @@
 import seaborn
 import torch
-from torch.utils.data import Dataset, DataLoader
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
-import torch.nn.functional as F
+from sklearn.model_selection import train_test_split
+from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
+from loguru import logger
 
 def evaluate_model(model, test_loader):
     model.eval()
@@ -93,7 +94,7 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, num_epoc
         test_accuracy = evaluate_model(model, test_loader)
         test_accuracies.append(test_accuracy)
 
-        print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}, Test Accuracy: {test_accuracy:.2f}%')
+        logger.info(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}, Test Accuracy: {test_accuracy:.2f}%')
 
     # training loss 및 test accuracy 그래프 그리기
     plot_graphs(train_losses, test_accuracies)

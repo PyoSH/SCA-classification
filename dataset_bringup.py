@@ -5,12 +5,25 @@
 
 from src.dataset import *
 from src.feature_extraction import *
+from config import cfg, update_config
+import argparse
+from loguru import logger
 
-# label_class = {'base': 0, 'idling': 1, 'cutting': 2, 'hardcutting': 3}
-label_class = {'idling': 0, 'cutting': 1, 'hardcutting': 2}
+parser = argparse.ArgumentParser(description='Running audio classification')
+parser.add_argument('--cfg',
+                    help='experiment configure file name',
+                    required=True,
+                    type=str)
 
-sample_rate = 44100
-len_frame_time = 100 * 0.001 # 50 ms
+args = parser.parse_args()
+update_config(cfg, args)
+
+logger.info("Running dataset_bringup ...")
+logger.info(f'DATA path: {cfg.PATH.TRAIN_PATH}')
+
+label_class = cfg.HYPERPARAMS.LABEL_CLASS
+sample_rate = cfg.FEATUREPARAMS.SAMPLING_RATE
+len_frame_time = cfg.HYPERPARAMS.LEN_FRAME * 0.001 # 50 ms
 len_frame_sample = int(len_frame_time * sample_rate) # sample num = 2205
 
 dataPath = 'data'
@@ -45,7 +58,7 @@ if __name__ == '__main__':
         temp2dMat[:,0:len_frame_sample] = audio_processed
         temp2dMat[:, -1] = label_processed
 
-        print(f'{item:2d}th dataset processing : num frame {audio_processed.shape[0]:.4f}, num_label {label_processed.shape}, temp dataset {temp2dMat.shape}')
+        logger.info(f'{item:2d}th dataset processing : num frame {audio_processed.shape[0]:.4f}, num_label {label_processed.shape}, temp dataset {temp2dMat.shape}')
 
         if (item == 1) or (iterated == False):
             dataSetMat = copy.deepcopy(temp2dMat)
@@ -53,8 +66,7 @@ if __name__ == '__main__':
         else:
             dataSetMat = np.concatenate((dataSetMat, temp2dMat), axis=0)
 
-    print(f'dataset processed : dataset {dataSetMat.shape}')
-    dataSetType = int(len_frame_time*1000)
-    dataSet_path = os.path.join(dataPath,f'set_{dataSetType}ms',f'data_{dataSetType}ms')
+    logger.info(f'dataset processed : dataset {dataSetMat.shape}')
+    dataSet_path = cfg.PATH.TRAIN_PATH
     np.save(dataSet_path, dataSetMat)
-    print(f'{dataSetType}ms Dataset saved in {dataSet_path}')
+    logger.info(f'{cfg.HYPERPARAMS.LEN_FRAME}ms Dataset saved in {dataSet_path}')

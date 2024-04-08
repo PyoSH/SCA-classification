@@ -1,9 +1,9 @@
-import os
-import torch
 import copy
 import pandas as pd
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from src.feature_extraction import *
+from loguru import logger
+from tqdm import tqdm
 
 class AudioDataset(Dataset):
     def __init__(self, X, y, input_size):
@@ -42,14 +42,14 @@ def labelProcessing(label_raw, vectorShape, label_class, sampleRate, len_frame):
     label_raw.columns = ['start', 'end', 'label']
 
     # 레이블을 숫자로 매핑
-    # label_mapping = {'idling': 0, 'cutting': 1, 'hardcutting': 2}
+    label_mapping = array_to_dict(label_class)
 
     # 레이블 데이터 준비
     label_processed = np.zeros(vectorShape)  # 모델 입력 차원(= 특징 벡터 열 개수)에 맞는 레이블 배열 초기화
     for _, row in label_raw.iterrows():
         start_frame = int(row['start'] * sampleRate / len_frame) # audio frame 단위.
         end_frame = int(row['end'] * sampleRate / len_frame)
-        label_processed[start_frame:end_frame] = label_class[row['label']]
+        label_processed[start_frame:end_frame] = label_mapping[row['label']]
 
     return label_processed
 
@@ -59,7 +59,8 @@ dataset_bringup으로 처리한 행렬 중 음향 데이터를 mfcc로 특징 �
 '''
 def audioProcessing(data, mfcc_const):
     data_featureVector = None
-    for idx in range(data.shape[0]):
+    a = range(data.shape[0])
+    for idx in tqdm(a, desc="Feature extraction progressing"):
         temp_data = data[idx, :]
         temp_featureVector = get_frame_to_mfcc(temp_data, samplingRate=mfcc_const.sr,
                                                num_cepstralCoefficient=mfcc_const.n_mfcc,
@@ -69,12 +70,12 @@ def audioProcessing(data, mfcc_const):
         else:
             data_featureVector = np.append(data_featureVector, temp_featureVector, axis=0)
 
-        if idx % 100 == 0:
-            print(f'{idx + 1}th audio frame processed! don\'t worry ;)')
-
     return data_featureVector
 
 def zeropad1d(A, length):
     retVal = np.zeros(length)
     retVal[:len(A)] = A
     return retVal
+
+def array_to_dict(arr):
+    return {arr[i] : i for i in range(len(arr))}
