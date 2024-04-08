@@ -46,10 +46,11 @@ if __name__ == '__main__':
         data_audio = data_law[:, 0:-1]
         data_label = data_law[:, -1]
         data_featureVector = audioProcessing(data_audio, mfcc_const)
-        print(data_featureVector.shape)
         test_set = AudioDataset(data_featureVector, data_label, input_size=mfcc_const.n_mfcc)
         # test_loader = DataLoader(test_set, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=False)
         test_loader = DataLoader(test_set, batch_size=1, shuffle=False)
 
-        avg_loss, avg_acc = evaluate_test(model, test_loader)
-        logger.info(f'Current {item} dataset avg loss : {avg_loss}, avg acc : {avg_acc*100}')
+        # avg_loss, avg_acc = evaluate_test(model, test_loader)
+        # logger.info(f'Current {item} dataset avg loss : {avg_loss}, avg acc : {avg_acc*100}')
+
+        print(eval_metrics(model, test_loader))

@@ -2,6 +2,7 @@ import seaborn
 import torch
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
+import sklearn.metrics as metrics
 from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 import torch.nn.functional as F
@@ -20,22 +21,27 @@ def evaluate_model(model, test_loader):
             correct += (predicted == labels).sum().item()
     accuracy = correct / total * 100
     return accuracy
-def evaluate_test(model, test_loader):
-    corrects, total, total_loss = 0, 0, 0
-    model.eval()
-    iter = 0
-    for inputs, labels in test_loader:
-        logit = model(inputs)
-        loss = F.cross_entropy(logit, labels, reduction="sum")
-        _, predicted = torch.max(logit.data, 1)
-        total += labels.size(0)
-        total_loss += loss.item()
-        corrects += (predicted == labels).sum()
-        iter += 1
+def eval_metrics(model, test_loader):
+    y_trues = []
+    y_preds = []
+    # acc = -1
+    # precision = -1
+    # recall = -1
+    # f1_score = -1
 
-    avg_loss = total_loss / len(test_loader.dataset)
-    avg_acc = corrects / total
-    return avg_loss, avg_acc
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            outputs = model(inputs)
+            _, predicted = torch.max(outputs.data, 1)
+            y_preds.append(predicted.item())
+            y_trues.append(labels.item())
+
+    acc = metrics.accuracy_score(y_trues, y_preds)
+    # precision = metrics.precision_score(y_trues, y_preds)
+    # recall = metrics.recall_score(y_trues, y_preds, pos_label=1)
+    # f1_score = metrics.f1_score(y_trues, y_preds)
+
+    return metrics.classification_report(y_trues, y_preds, zero_division=0)
 def plot_graphs(train_losses, test_accuracies):
     plt.figure(figsize=(12, 6))
 
