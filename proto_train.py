@@ -21,7 +21,7 @@ else:
     logger.info("Dataset found :) ")
 
 logger.info("Running proto_train ...")
-logger.info(f'MODEL path: {cfg.PATH.MODEL_PATH} \n DATA path: {cfg.PATH.TRAIN_PATH}')
+logger.info(f'DATA path: {cfg.PATH.TRAIN_PATH}')
 
 mfcc_const = MFCC_params(cfg.FEATUREPARAMS.SAMPLING_RATE, cfg.FEATUREPARAMS.NUM_CEPSTRAL_COEFFICIENTS,
                          cfg.FEATUREPARAMS.HOP_LENGTH, cfg.FEATUREPARAMS.LEN_WINDOW)
@@ -36,13 +36,16 @@ if __name__ == '__main__':
 
     # 데이터셋 분할
     X_train, X_test, y_train, y_test = train_test_split(data_featureVector, data_label, test_size=0.2, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.25, random_state=42)
 
     # 데이터셋 객체 생성
     train_dataset = AudioDataset(X_train, y_train, input_size=mfcc_const.n_mfcc)
+    valid_dataset = AudioDataset(X_val, y_val, input_size=mfcc_const.n_mfcc)
     test_dataset = AudioDataset(X_test, y_test, input_size=mfcc_const.n_mfcc)
 
     # 데이터로더 객체 생성
     train_loader = DataLoader(train_dataset, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=True)
+    valid_loader = DataLoader(valid_dataset, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=False)
 
     # 모델 인스턴스 생성
@@ -55,14 +58,17 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=cfg.HYPERPARAMS.LEARNING_RATE)
 
     # 모델 훈련
-    train_model(model=model, train_loader=train_loader, test_loader=test_loader,
+    train_model(model=model, train_loader=train_loader, test_loader=valid_loader,
                 criterion=criterion, optimizer=optimizer, num_epochs=cfg.HYPERPARAMS.NUM_EPOCHS)
 
     # 모델 평가
     input_size = X_train.shape[2]
     logger.info(f"Input size: {input_size}")
     logger.info(f"X_train shape: {X_train.shape}")
+    logger.info(f"X_val shape: {X_val.shape}")
     logger.info(f"X_test shape: {X_test.shape}")
+    print(eval_metrics(model, test_loader))
 
     # 모델 저장 - 중간중간 저장하는 기능 필요?
     torch.save(model.state_dict(), cfg.PATH.MODEL_PATH)
+    logger.info(f"Model saved: {cfg.PATH.MODEL_PATH}")

@@ -1,7 +1,7 @@
 # parameters for train model
 
 PATH:
-  TRAIN_PATH: ./data/TEST/data_100ms.npy
+  TRAIN_PATH: ./data/set_100ms/data_100ms.npy
   MODEL_PATH: ./results/model_100ms.pth #this model will be made in path
 HYPERPARAMS:
   HIDDEN_SIZE: 128

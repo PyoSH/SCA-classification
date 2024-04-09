@@ -1,3 +1,4 @@
+import numpy as np
 import seaborn
 import torch
 from sklearn.metrics import confusion_matrix
@@ -22,21 +23,25 @@ def evaluate_model(model, test_loader):
     accuracy = correct / total * 100
     return accuracy
 def eval_metrics(model, test_loader):
-    y_trues = []
-    y_preds = []
-    # acc = -1
-    # precision = -1
-    # recall = -1
-    # f1_score = -1
+    y_trues = None
+    y_preds = None
+    iter = False
 
     with torch.no_grad():
         for inputs, labels in test_loader:
             outputs = model(inputs)
             _, predicted = torch.max(outputs.data, 1)
-            y_preds.append(predicted.item())
-            y_trues.append(labels.item())
+            labels_np = labels.numpy()
+            pred_np = predicted.numpy()
+            if not iter:
+                y_trues = labels_np
+                y_preds = pred_np
+                iter = True
+            else:
+                y_trues = np.concatenate((y_trues, labels_np), axis=0)
+                y_preds = np.concatenate((y_preds, pred_np), axis=0)
 
-    acc = metrics.accuracy_score(y_trues, y_preds)
+    # acc = metrics.accuracy_score(y_trues, y_preds)
     # precision = metrics.precision_score(y_trues, y_preds)
     # recall = metrics.recall_score(y_trues, y_preds, pos_label=1)
     # f1_score = metrics.f1_score(y_trues, y_preds)
