@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
             _, predicted = torch.max(outputs.data, 1)
             predicted_class = class_labels[predicted.item()]
-            logger.info(f'{input_tensor.shape}Predicted Class: {predicted_class}, {predicted.item()}')
+            logger.info(f'Predicted: {predicted_class}')
 
     except KeyboardInterrupt:
         logger.info("실시간 오디오 분류 종료.")

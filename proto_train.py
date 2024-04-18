@@ -1,3 +1,5 @@
+import seaborn
+
 from src.model_definition import *
 from src.train_utils import *
 from src.dataset import *
@@ -67,7 +69,7 @@ if __name__ == '__main__':
     logger.info(f"X_train shape: {X_train.shape}")
     logger.info(f"X_val shape: {X_val.shape}")
     logger.info(f"X_test shape: {X_test.shape}")
-    print(eval_metrics(model, test_loader))
+    print(eval_metrics(model, test_loader, cfg.HYPERPARAMS.LABEL_CLASS))
 
     # 모델 저장 - 중간중간 저장하는 기능 필요?
     torch.save(model.state_dict(), cfg.PATH.MODEL_PATH)

@@ -1,9 +1,12 @@
+import os.path
+
 import numpy as np
 import seaborn
 import torch
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 import sklearn.metrics as metrics
+from sklearn.metrics import ConfusionMatrixDisplay
 from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 import torch.nn.functional as F
@@ -22,7 +25,7 @@ def evaluate_model(model, test_loader):
             correct += (predicted == labels).sum().item()
     accuracy = correct / total * 100
     return accuracy
-def eval_metrics(model, test_loader):
+def eval_metrics(model, test_loader, classes):
     y_trues = None
     y_preds = None
     iter = False
@@ -45,7 +48,7 @@ def eval_metrics(model, test_loader):
     # precision = metrics.precision_score(y_trues, y_preds)
     # recall = metrics.recall_score(y_trues, y_preds, pos_label=1)
     # f1_score = metrics.f1_score(y_trues, y_preds)
-
+    plot_cm(y_trues, y_preds, classes=classes)
     return metrics.classification_report(y_trues, y_preds, zero_division=0)
 def plot_graphs(train_losses, test_accuracies):
     plt.figure(figsize=(12, 6))
@@ -69,16 +72,20 @@ def plot_graphs(train_losses, test_accuracies):
     plt.tight_layout()
     plt.show()
 
-def plot_cm(y_true, y_pred, annot=True, cmap='Blues', show='True'):
-    cm = confusion_matrix(y_true, y_pred)
-    seaborn.heatmap(cm, annot, cmap)
+def plot_cm(y_true, y_pred, classes, show='True'):
+
+    mapped_y_true = np.array(classes)[y_true]
+    mapped_y_pred = np.array(classes)[y_pred]
+
+    cm = confusion_matrix(mapped_y_true, mapped_y_pred, labels=classes)
+    print(cm)
+    cm_vis = seaborn.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=classes, yticklabels=classes)
+    plt.title('Confusion Matrix')
     plt.xlabel('Predicted')
     plt.ylabel('True')
-    if show:
-        plt.show()
-    else:
-        # plt.imsave()
-        pass
+
+    plt.show()
+
 
 
 def train_model(model, train_loader, test_loader, criterion, optimizer, num_epochs):

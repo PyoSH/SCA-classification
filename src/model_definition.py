@@ -9,3 +9,13 @@ class LSTMModel(nn.Module):
         out, _ = self.lstm(x)
         out = self.fc(out[:, -1, :])
         return out
+class RNNModel(nn.Module):
+    def __init__(self, input_size, hidden_size, num_layers, num_classes):
+        super(RNNModel, self).__init__()
+        self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, num_classes)
+
+    def forward(self, x):
+        out, _ = self.rnn(x)
+        out = self.fc(out[:, -1, :])  # RNN의 마지막 출력을 사용
+        return out
