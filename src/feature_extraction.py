@@ -3,6 +3,8 @@ import librosa
 import numpy as np
 import torch
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import minmax_scale
+import copy
 
 class MFCC_params():
     def __init__(self, samplingRate, num_CepstralCs, hop_length, len_window):
@@ -58,20 +60,25 @@ leng_fft = n_fft
 num_cepstralCoefficient = n_mfcc
 '''
 def get_frame_to_mfcc(data, samplingRate, num_cepstralCoefficient, hop_length, len_fft):
+    # 1-1 프레임 대한 정규화 (-1~1) (before mfcc)
     # 16-bit 정수를 부동 소수점으로 변환
     frame_float = data.astype(np.float32) / 32767.0
-
-    # normalization 추가!!
     frame_norm = None
+    # 1-2 프레임 대한 표준화
     if np.max(frame_float) == 0:
         frame_norm = frame_float
     else:
         frame_norm = (frame_float - np.mean(frame_float)) / np.std(frame_float)
 
-    # n_fft 값을 조정
+    # 2 프레임 정규화 X
+    # frame_norm = copy.deepcopy(data.astype(np.float32))
+
+    # 특징 벡터 추출
     featureVector = librosa.feature.mfcc(y=frame_norm, sr=samplingRate, hop_length=hop_length, n_mfcc=num_cepstralCoefficient,
                                  n_fft=len_fft).T # 전치!!!
 
+    # 3 프레임 정규화 (0~1)
+    # featureVector = minmax_scale(copy.deepcopy(featureVector), feature_range=(0, 1), axis=0)
     #차원 추가!!!
     featureVector = featureVector[np.newaxis, :, :]
     return featureVector

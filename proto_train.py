@@ -51,9 +51,15 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_dataset, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=False)
 
     # 모델 인스턴스 생성
-    model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
-                      num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
-                      output_dim=cfg.HYPERPARAMS.NUM_CLASSES)
+    model = None
+    if cfg.HYPERPARAMS.MODELTYPE == 'RNN':
+        model = RNNModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                         num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                         output_dim=cfg.HYPERPARAMS.NUM_CLASSES)
+    elif cfg.HYPERPARAMS.MODELTYPE == 'LSTM':
+        model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                          num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                          output_dim=cfg.HYPERPARAMS.NUM_CLASSES)
 
     # 손실 함수 및 최적화 알고리즘 정의
     criterion = nn.CrossEntropyLoss()

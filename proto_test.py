@@ -33,8 +33,15 @@ mfcc_const = MFCC_params(cfg.FEATUREPARAMS.SAMPLING_RATE, cfg.FEATUREPARAMS.NUM_
 if __name__ == '__main__':
 
     # 학습된 모델 불러오기
-    model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE, num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
-                      output_dim=cfg.HYPERPARAMS.NUM_CLASSES)
+    model = None
+    if cfg.HYPERPARAMS.MODELTYPE == 'RNN':
+        model = RNNModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                         num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                         output_dim=cfg.HYPERPARAMS.NUM_CLASSES)
+    elif cfg.HYPERPARAMS.MODELTYPE == 'LSTM':
+        model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                          num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                          output_dim=cfg.HYPERPARAMS.NUM_CLASSES)
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH))
 
     acc_array = []
@@ -50,7 +57,6 @@ if __name__ == '__main__':
         # test_loader = DataLoader(test_set, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=False)
         test_loader = DataLoader(test_set, batch_size=1, shuffle=False)
 
-        # avg_loss, avg_acc = evaluate_test(model, test_loader)
         # logger.info(f'Current {item} dataset avg loss : {avg_loss}, avg acc : {avg_acc*100}')
 
-        print(eval_metrics(model, test_loader))
+        print(eval_metrics(model, test_loader, cfg.HYPERPARAMS.LABEL_CLASS))

@@ -31,9 +31,15 @@ class_labels = cfg.HYPERPARAMS.LABEL_CLASS
 
 if __name__ == '__main__':
     # 학습된 모델 불러오기
-    model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
-                      num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
-                      output_dim=cfg.HYPERPARAMS.NUM_CLASSES)
+    model = None
+    if cfg.HYPERPARAMS.MODELTYPE == 'RNN':
+        model = RNNModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                         num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                         output_dim=cfg.HYPERPARAMS.NUM_CLASSES)
+    elif cfg.HYPERPARAMS.MODELTYPE == 'LSTM':
+        model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                          num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                          output_dim=cfg.HYPERPARAMS.NUM_CLASSES)
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH))
 
     # 입력장치 선택

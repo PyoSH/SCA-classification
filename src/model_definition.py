@@ -10,10 +10,10 @@ class LSTMModel(nn.Module):
         out = self.fc(out[:, -1, :])
         return out
 class RNNModel(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, num_classes):
+    def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
         super(RNNModel, self).__init__()
-        self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_size, num_classes)
+        self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
         out, _ = self.rnn(x)

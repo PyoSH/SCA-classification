@@ -5,6 +5,7 @@ PATH:
   TEST_PATH: ./data/set_100ms/test_100ms_label4.npy
   MODEL_PATH: ./results/model_100ms_label4.pth
 HYPERPARAMS:
+  MODELTYPE: 'LSTM'
   HIDDEN_SIZE: 128
   NUM_LAYERS: 2
   NUM_CLASSES: 4

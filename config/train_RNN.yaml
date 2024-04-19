@@ -2,9 +2,9 @@
 
 PATH:
   TRAIN_PATH: ./data/set_100ms/data_100ms_label4.npy
-  MODEL_PATH: ./results/LSTM_100ms_normTest.pth #this model will be made in path
+  MODEL_PATH: ./results/RNN_100ms.pth #this model will be made in path
 HYPERPARAMS:
-  MODELTYPE: 'LSTM'
+  MODELTYPE: 'RNN'
   HIDDEN_SIZE: 128
   NUM_LAYERS: 2
   NUM_CLASSES: 4

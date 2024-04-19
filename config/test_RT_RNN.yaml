@@ -1,9 +1,9 @@
 # parameters for Real Time prediction.
 
 PATH:
-  MODEL_PATH: ./results/model_100ms_label4.pth
+  MODEL_PATH: ./results/RNN_100ms.pth
 HYPERPARAMS:
-  MODELTYPE: 'LSTM'
+  MODELTYPE: 'RNN'
   HIDDEN_SIZE: 128
   NUM_LAYERS: 2
   NUM_CLASSES: 4

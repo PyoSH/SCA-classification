@@ -12,6 +12,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from loguru import logger
+from torchinfo import summary
 
 def evaluate_model(model, test_loader):
     model.eval()
@@ -44,11 +45,9 @@ def eval_metrics(model, test_loader, classes):
                 y_trues = np.concatenate((y_trues, labels_np), axis=0)
                 y_preds = np.concatenate((y_preds, pred_np), axis=0)
 
-    # acc = metrics.accuracy_score(y_trues, y_preds)
-    # precision = metrics.precision_score(y_trues, y_preds)
-    # recall = metrics.recall_score(y_trues, y_preds, pos_label=1)
-    # f1_score = metrics.f1_score(y_trues, y_preds)
     plot_cm(y_trues, y_preds, classes=classes)
+    # summary(model, inputs.shape, dtypes=[torch.long])
+
     return metrics.classification_report(y_trues, y_preds, zero_division=0)
 def plot_graphs(train_losses, test_accuracies):
     plt.figure(figsize=(12, 6))
