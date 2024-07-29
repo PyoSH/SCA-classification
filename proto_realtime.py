@@ -56,12 +56,14 @@ if __name__ == '__main__':
 
     try:
         while True:
+            # logger.info('[0,1)')
             input_raw = stream.read(CHUNK)
             input_np = np.frombuffer(input_raw, dtype=np.int16) # 여기서 음질이 좀 뭉게지려나
+            # logger.info('(1,2]')
             featureVector = get_frame_to_mfcc(input_np, samplingRate=mfcc_const.sr, num_cepstralCoefficient=mfcc_const.n_mfcc,
                               hop_length=mfcc_const.hop_length, len_fft=mfcc_const.len_fft)
             input_tensor = torch.tensor(featureVector[:, :, :mfcc_const.n_mfcc], dtype=torch.float32) # 입력 텐서 주의!!!!
-
+            # logger.info('(2,3]')
             with torch.no_grad():
                 model.eval()
                 outputs = model(input_tensor)

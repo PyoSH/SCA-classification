@@ -1,4 +1,6 @@
 import copy
+import glob
+
 import pandas as pd
 from torch.utils.data import Dataset
 from src.feature_extraction import *
@@ -49,7 +51,11 @@ def labelProcessing(label_raw, vectorShape, label_class, sampleRate, len_frame):
     for _, row in label_raw.iterrows():
         start_frame = int(row['start'] * sampleRate / len_frame) # audio frame 단위.
         end_frame = int(row['end'] * sampleRate / len_frame)
-        label_processed[start_frame:end_frame] = label_mapping[row['label']]
+        temp_label = None
+        if row['label'] == 'hardcutting_v' or row['label'] == 'hardcutting_h': temp_label = 'hardcutting'
+        else: temp_label = row['label']
+        # label_processed[start_frame:end_frame] = label_mapping[row['label']]
+        label_processed[start_frame:end_frame] = label_mapping[temp_label]
 
     return label_processed
 
@@ -79,3 +85,29 @@ def zeropad1d(A, length):
 
 def array_to_dict(arr):
     return {arr[i] : i for i in range(len(arr))}
+
+def file_path(path, fileName):
+    return os.path.join(path, '{}'.format(fileName))
+def is_audio(fileName):
+    EXTENSIONS = ['.mp3', '.wav']
+    return any(fileName.endswith(ext) for ext in EXTENSIONS)
+
+def list_audio_files(dir):
+    EXTENSIONS = ['*.mp3', '*.wav']
+    audio_list = []
+    for EXTENSION in EXTENSIONS:
+        audio_list.extend(glob.glob(os.path.join(dir, '**', EXTENSION), recursive=True))
+
+    audio_list.sort(key=lambda path: os.path.basename(path))
+
+    return audio_list
+
+def list_label_files(dir):
+    EXTENSIONS = ['*.txt']
+    label_list = []
+    for EXTENSION in EXTENSIONS:
+        label_list.extend(glob.glob(os.path.join(dir, '**', EXTENSION), recursive=True))
+
+    label_list.sort(key=lambda path: os.path.basename(path))
+
+    return label_list
