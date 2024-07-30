@@ -45,7 +45,8 @@ def eval_metrics(model, test_loader, classes):
                 y_trues = np.concatenate((y_trues, labels_np), axis=0)
                 y_preds = np.concatenate((y_preds, pred_np), axis=0)
 
-    plot_cm(y_trues, y_preds, classes=classes)
+    plot_comparison(y_trues, y_preds, classes=classes)
+    # plot_cm(y_trues, y_preds, classes=classes)
     # summary(model, inputs.shape, dtypes=[torch.long])
 
     return metrics.classification_report(y_trues, y_preds, zero_division=0)
@@ -85,7 +86,29 @@ def plot_cm(y_true, y_pred, classes, show='True'):
 
     plt.show()
 
+def plot_comparison(y_ts, y_ps, classes, show='True'):
+    x = np.arange(len(y_ts))
 
+    plt.figure(figsize=(12, 6))
+
+    plt.subplot(2, 1, 1)
+    plt.plot(x, y_ts, color='red', linestyle='-', marker='', label='GT', linewidth=1)
+    plt.xlabel('Audio frame')
+    plt.ylabel('Operational situation')
+    plt.yticks(ticks=np.arange(4), labels=classes)
+    plt.legend()
+    plt.title('Comparison of real-time prediction and GT')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(x, y_ps ,  color='green', linestyle='-', marker='', label='predicted', linewidth=1)
+    plt.xlabel('Audio frame')
+    plt.ylabel('Operational situation')
+
+    plt.yticks(ticks=np.arange(4), labels=classes)
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
 
 def train_model(model, train_loader, test_loader, criterion, optimizer, num_epochs):
     train_losses = []  # 각 epoch의 training loss 기록
@@ -95,23 +118,29 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, num_epoc
         model.train()  # 모델을 training 모드로 설정
 
         idx = 0
+        running_loss = 0.0
         for inputs, labels in train_loader:
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-            idx += 1
+            running_loss += loss.item()
+            # idx += 1
             # 현재 epoch의 training loss 기록
-            if idx == len(train_loader):
-                train_losses.append(loss.item())
+            # if idx == len(train_loader):
+            #   train_losses.append(loss.item())
 
+        # 현재 epoch의 평균 training loss 기록
+        epoch_loss = running_loss / len(train_loader)
+        train_losses.append(epoch_loss)
 
         # 현재 epoch의 test accuracy 계산 및 기록
         test_accuracy = evaluate_model(model, test_loader)
         test_accuracies.append(test_accuracy)
 
-        logger.info(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}, Test Accuracy: {test_accuracy:.2f}%')
+        # logger.info(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}, Test Accuracy: {test_accuracy:.2f}%')
+        logger.info(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss:.4f}, Test Accuracy: {test_accuracy:.2f}%')
 
     # training loss 및 test accuracy 그래프 그리기
     plot_graphs(train_losses, test_accuracies)

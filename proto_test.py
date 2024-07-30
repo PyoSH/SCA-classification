@@ -46,17 +46,12 @@ if __name__ == '__main__':
 
     acc_array = []
 
-    for item in range (1,2):
-        # 데이터셋 구성 & 음향+라벨 전처리
+    data_law = np.load(cfg.PATH.TEST_PATH)
+    data_audio = data_law[:, 0:-1]
+    data_label = data_law[:, -1]
+    data_featureVector = audioProcessing(data_audio, mfcc_const)
+    test_set = AudioDataset(data_featureVector, data_label, input_size=mfcc_const.n_mfcc)
+    # test_loader = DataLoader(test_set, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=False)
+    test_loader = DataLoader(test_set, batch_size=1, shuffle=False)
 
-        data_law = np.load(cfg.PATH.TEST_PATH)
-        data_audio = data_law[:, 0:-1]
-        data_label = data_law[:, -1]
-        data_featureVector = audioProcessing(data_audio, mfcc_const)
-        test_set = AudioDataset(data_featureVector, data_label, input_size=mfcc_const.n_mfcc)
-        # test_loader = DataLoader(test_set, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=False)
-        test_loader = DataLoader(test_set, batch_size=1, shuffle=False)
-
-        # logger.info(f'Current {item} dataset avg loss : {avg_loss}, avg acc : {avg_acc*100}')
-
-        print(eval_metrics(model, test_loader, cfg.HYPERPARAMS.LABEL_CLASS))
+    print(eval_metrics(model, test_loader, cfg.HYPERPARAMS.LABEL_CLASS))
