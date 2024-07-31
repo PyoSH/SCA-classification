@@ -126,10 +126,6 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, num_epoc
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
-            # idx += 1
-            # 현재 epoch의 training loss 기록
-            # if idx == len(train_loader):
-            #   train_losses.append(loss.item())
 
         # 현재 epoch의 평균 training loss 기록
         epoch_loss = running_loss / len(train_loader)
@@ -138,10 +134,7 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, num_epoc
         # 현재 epoch의 test accuracy 계산 및 기록
         test_accuracy = evaluate_model(model, test_loader)
         test_accuracies.append(test_accuracy)
-
-        # logger.info(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}, Test Accuracy: {test_accuracy:.2f}%')
         logger.info(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss:.4f}, Test Accuracy: {test_accuracy:.2f}%')
 
     # training loss 및 test accuracy 그래프 그리기
     plot_graphs(train_losses, test_accuracies)
-

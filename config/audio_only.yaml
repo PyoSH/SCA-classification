@@ -1,8 +1,8 @@
 # parameters for train model
 
 PATH:
-  TRAIN_PATH: ./data/audio_100ms/audio_test_0712_3_2.npy
-  MODEL_PATH: ./results/LSTM_audio_only.pth #this model will be made in path
+  TRAIN_PATH: ./data/audio_100ms/audio_train.npy
+  MODEL_PATH: ./results/LSTM_best_audio_only.pth #this model will be made in path
 HYPERPARAMS:
   MODELTYPE: 'LSTM'
   HIDDEN_SIZE: 128
