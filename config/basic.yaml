@@ -2,7 +2,7 @@
 
 PATH:
   TRAIN_PATH: ./data/set_100ms/data_100ms_label4.npy
-  TEST_PATH: ./data/set_100ms/test_100ms_label4.npy
+  TEST_PATH: ./data/audio_100ms/audio_test.npy
   MODEL_PATH: ./results/model_100ms_label4.pth
 HYPERPARAMS:
   MODELTYPE: 'LSTM'

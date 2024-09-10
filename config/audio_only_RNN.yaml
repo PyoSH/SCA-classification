@@ -2,7 +2,8 @@
 
 PATH:
   TRAIN_PATH: ./data/audio_100ms/audio_train.npy
-  MODEL_PATH: ./results/RNN_audio_only.pth #this model will be made in path
+  TEST_PATH: ./data/audio_100ms/audio_test.npy
+  MODEL_PATH: ./results/RNN_audio.pth #this model will be made in path
 HYPERPARAMS:
   MODELTYPE: 'RNN'
   HIDDEN_SIZE: 128
