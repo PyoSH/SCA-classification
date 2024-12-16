@@ -52,7 +52,9 @@ def labelProcessing(label_raw, vectorShape, label_class, sampleRate, len_frame):
         start_frame = int(row['start'] * sampleRate / len_frame) # audio frame 단위.
         end_frame = int(row['end'] * sampleRate / len_frame)
         temp_label = None
-        if row['label'] == 'hardcutting_v' or row['label'] == 'hardcutting_h': temp_label = 'hardcutting'
+        # if row['label'] == 'hardcutting_v' or row['label'] == 'hardcutting_h': temp_label = 'hardcutting'
+        if row['label'] == 'hardcutting' or row['label'] == 'cutting' : temp_label = 'cutting'
+        elif row['label'] not in label_class : temp_label = 'unknown'
         else: temp_label = row['label']
         # label_processed[start_frame:end_frame] = label_mapping[row['label']]
         label_processed[start_frame:end_frame] = label_mapping[temp_label]

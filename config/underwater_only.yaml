@@ -1,0 +1,21 @@
+# parameters for train model
+
+PATH:
+  TRAIN_PATH: ./data/audio_100ms/underwater_train.npy
+  TEST_PATH: ./data/audio_100ms/underwater_test.npy
+  MODEL_PATH: ./results/LSTM_underwater_only.pth #this model will be made in path
+HYPERPARAMS:
+  MODELTYPE: 'LSTM'
+  HIDDEN_SIZE: 128
+  NUM_LAYERS: 2
+  NUM_CLASSES: 3
+  BATCH_SIZE: 128
+  NUM_EPOCHS: 10
+  LEARNING_RATE: 0.001
+  LABEL_CLASS: ['unknown','idling', 'cutting']
+  LEN_FRAME: 150 # [ms]
+FEATUREPARAMS:
+  SAMPLING_RATE: 44100
+  LEN_WINDOW: 1024
+  HOP_LENGTH: 256
+  CHUNK: 6615 # 50ms -> 2205, 100ms -> 4410 same as sample per frame

@@ -18,16 +18,16 @@ parser.add_argument('--cfg',
 
 args = parser.parse_args()
 update_config(cfg, args)
-
+dataSet_path = cfg.PATH.TRAIN_PATH # !!!!!
 logger.info("Running dataset_bringup ...")
-logger.info(f'DATA path: {cfg.PATH.TRAIN_PATH}')
+logger.info(f'DATA path: {dataSet_path}')
 
 label_class = cfg.HYPERPARAMS.LABEL_CLASS
 sample_rate = cfg.FEATUREPARAMS.SAMPLING_RATE
-len_frame_time = cfg.HYPERPARAMS.LEN_FRAME * 0.001 # 100 ms
-len_frame_sample = int(len_frame_time * sample_rate) # sample num = 2205
+len_frame_time = cfg.HYPERPARAMS.LEN_FRAME * 0.001 # 100 ms = 0.1 s
+len_frame_sample = int(len_frame_time * sample_rate) # sample num = 2205, 100ms frame = 4410 samples.
 
-dataPath = os.path.join('data', 'test') # or 'train'
+dataPath = os.path.join('data', 'train_underwater') # or 'train' !!!!!!
 audioPathList = os.path.join(dataPath, 'audio')
 labelPathList = os.path.join(dataPath, 'label')
 
@@ -62,13 +62,13 @@ if __name__ == '__main__':
 
         logger.info(f'{item:2d}th dataset-{tempLabelPath} processing : num frame {audio_processed.shape[0]:.4f}, num_label {label_processed.shape}, temp dataset {temp2dMat.shape}')
 
-        if (item == 1) or (iterated == False):
+        if (item == 0) or (iterated == False):
             dataSetMat = copy.deepcopy(temp2dMat)
             iterated = True
         else:
             dataSetMat = np.concatenate((dataSetMat, temp2dMat), axis=0)
 
     logger.info(f'dataset processed : dataset {dataSetMat.shape}')
-    dataSet_path = cfg.PATH.TRAIN_PATH
+
     np.save(dataSet_path, dataSetMat)
     logger.info(f'{cfg.HYPERPARAMS.LEN_FRAME}ms Dataset saved in {dataSet_path}')
