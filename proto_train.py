@@ -60,6 +60,8 @@ if __name__ == '__main__':
         model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
                           num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
                           output_dim=cfg.HYPERPARAMS.NUM_CLASSES)
+    # elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
+    #     model = CRNN()
 
     # 손실 함수 및 최적화 알고리즘 정의
     criterion = nn.CrossEntropyLoss()

@@ -46,7 +46,7 @@ def eval_metrics(model, test_loader, classes):
                 y_preds = np.concatenate((y_preds, pred_np), axis=0)
 
     plot_comparison(y_trues, y_preds, classes=classes)
-    plot_cm(y_trues, y_preds, classes=classes)
+    # plot_cm(y_trues, y_preds, classes=classes)
     # summary(model, inputs.shape, dtypes=[torch.long])
 
     return metrics.classification_report(y_trues, y_preds, zero_division=0)
@@ -100,7 +100,8 @@ def plot_comparison(y_ts, y_ps, classes, show='True'):
     plt.title('Comparison of real-time prediction and GT')
 
     plt.subplot(2, 1, 2)
-    plt.plot(x, y_ps ,  color='green', linestyle='-', marker='', label='predicted', linewidth=1)
+    # plt.plot(x, y_ps ,  color='green', linestyle='-', marker='', label='LSTM predicted', linewidth=1)
+    plt.plot(x, y_ps, color='blue', linestyle='-', marker='', label='RNN predicted', linewidth=1)
     plt.xlabel('Audio frame')
     plt.ylabel('Operational situation')
 

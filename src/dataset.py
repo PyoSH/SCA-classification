@@ -18,6 +18,19 @@ class AudioDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
+
+class RawWaveformDataset(Dataset):
+    def __init__(self, X, y):
+        #  목표 입력 텐서는 batch size 128 for 50ms , frame size = 2205, input_size = 40 (128, 2205??, 40)
+        self.X = torch.tensor(X[:, :], dtype=torch.float32)
+        self.y = torch.tensor(y, dtype=torch.long) # long -> float32 -> long
+
+    def __len__(self):
+        return len(self.X)
+
+    def __getitem__(self, idx):
+        return self.X[idx], self.y[idx]
+
 class ProtoDataset(Dataset):
     def __init__(self, dataPath, featureParams, item=1):
         self.audioPath = os.path.join(dataPath,'audio',f'TestSet_{item}_1.mp3')
