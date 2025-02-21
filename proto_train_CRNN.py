@@ -1,7 +1,6 @@
 from copy import deepcopy
 
 import seaborn
-
 from src.model_definition import *
 from src.train_utils import *
 from src.dataset import *
@@ -9,6 +8,17 @@ from config import cfg, update_config
 import argparse
 from loguru import logger
 import numpy as np
+
+# 디바이스 설정: Apple Silicon의 MPS, CUDA, 또는 CPU
+device = None
+if torch.backends.mps.is_available():
+    device = torch.device("mps")
+elif torch.cuda.is_available():
+    device = torch.device("cuda")
+    logger.info(f'GPU device found: {torch.cuda.get_device_name(0)}')
+else:
+    device = torch.device("cpu")
+logger.info(f'selected device: {device}')
 
 parser = argparse.ArgumentParser(description='Running audio classification')
 parser.add_argument('--cfg',
@@ -55,21 +65,21 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_dataset, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=False)
 
     # # 모델 인스턴스 생성 - 여기 채워!!!
-    model = CRNN_base(input_dim=101)
+    model = CRNN_base(input_dim=101).to(device)
 
     # 손실 함수 및 최적화 알고리즘 정의
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=cfg.HYPERPARAMS.LEARNING_RATE)
 
     # 모델 훈련
-    train_model(model=model, train_loader=train_loader, test_loader=valid_loader,
-                criterion=criterion, optimizer=optimizer, num_epochs=cfg.HYPERPARAMS.NUM_EPOCHS)
+    train_model_device(model=model, train_loader=train_loader, test_loader=valid_loader,
+                criterion=criterion, optimizer=optimizer, num_epochs=cfg.HYPERPARAMS.NUM_EPOCHS, device=device)
 
     # 모델 평가
     logger.info(f"X_train shape: {X_train.shape}")
     logger.info(f"X_val shape: {X_val.shape}")
     logger.info(f"X_test shape: {X_test.shape}")
-    print(eval_metrics(model, test_loader, cfg.HYPERPARAMS.LABEL_CLASS))
+    print(eval_metrics_device(model, test_loader, cfg.HYPERPARAMS.LABEL_CLASS, device))
 
     # 모델 저장 - 중간중간 저장하는 기능 필요?
     torch.save(model.state_dict(), cfg.PATH.MODEL_PATH)
