@@ -21,8 +21,9 @@ class AudioDataset(Dataset):
 
 class RawWaveformDataset(Dataset):
     def __init__(self, X, y):
-        #  목표 입력 텐서는 batch size 128 for 50ms , frame size = 2205, input_size = 40 (128, 2205??, 40)
+        #  목표 입력 텐서는 batch size 128 for 50ms , frame size = 1, input_size = 6615 (batch size, 1, 6615)
         self.X = torch.tensor(X[:, :], dtype=torch.float32)
+        self.X = torch.tensor(X, dtype=torch.float32).unsqueeze(1)
         self.y = torch.tensor(y, dtype=torch.long) # long -> float32 -> long
 
     def __len__(self):

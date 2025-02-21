@@ -1,4 +1,8 @@
 import torch.nn as nn
+import torch.nn.functional as F
+from sympy import transpose
+
+
 class LSTMModel(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
         super(LSTMModel, self).__init__()
@@ -21,32 +25,55 @@ class RNNModel(nn.Module):
         out = self.fc(out[:, -1, :])  # RNN의 마지막 출력을 사용
         return out
 
-class CustomLSTMModel(nn.Module):
-    def __init__(self, input_dim, hidden_dim1, hidden_dim2, output_dim):
-        super(CustomLSTMModel, self).__init__()
-        # 첫 번째 LSTM 층: 입력 차원에서 128개의 은닉 유닛으로
-        self.lstm1 = nn.LSTM(input_dim, hidden_dim1, batch_first=True)
+class CRNN_base(nn.Module):
+    def __init__(self, input_dim, hidden_dim=128, num_layers=2, output_dim=3):
+        super(CRNN_base, self).__init__()
+        self.cnn1 = nn.Conv1d(
+            in_channels=1,
+            out_channels=64,
+            kernel_size=80,
+            stride=4,
+            padding=0
+        )
+        self.bn1 = nn.BatchNorm1d(64)
+        self.pool1 = nn.MaxPool1d(kernel_size=4, stride=4)
 
-        # 두 번째 LSTM 층: 첫 번째 층의 128개의 출력을 받아 64개의 은닉 유닛으로
-        self.lstm2 = nn.LSTM(hidden_dim1, hidden_dim2, batch_first=True)
+        self.cnn2 = nn.Conv1d(
+            in_channels=64,
+            out_channels=64,
+            kernel_size=3,
+            stride=1,
+            padding=0
+        )
+        self.bn2 = nn.BatchNorm1d(64)
+        self.pool2 = nn.MaxPool1d(kernel_size=4, stride=4)
 
-        # 완전 연결 층
-        self.fc = nn.Linear(hidden_dim2, output_dim)
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True) # 여기의 input_dim은 pool2에서 나오는 크기여야 함!!!
+        self.fc = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
-        # 첫 번째 LSTM 층을 통과
-        x, _ = self.lstm1(x)
+        # "x.shape = [batch_size, 1, 6615]"
+        # print("Input:", x.shape)  # [batch, 1, 6615]
+        x = self.cnn1(x)
+        # print("After cnn1:", x.shape)
+        x = self.bn1(x)
+        x = F.relu(x)
+        x = self.pool1(x)
+        # print("After pool1:", x.shape)
 
-        # 두 번째 LSTM 층을 통과
-        x, _ = self.lstm2(x)
+        x = self.cnn2(x)
+        # print("After cnn2:", x.shape)
+        x = self.bn2(x)
+        x = F.relu(x)
+        x = self.pool2(x)
+        # print("After pool2:", x.shape)
 
-        # 시퀀스의 마지막 요소만을 사용하여 출력 계산
-        x = x[:, -1, :]
+        lstm_out, _ = self.lstm(x)
+        # print("After LSTM:", lstm_out.shape)
 
-        # 완전 연결 층을 통과
-        x = self.fc(x)
+        x = lstm_out[:, -1, :]
+        # print("After selecting last timestep:", x.shape)
 
-        return x
-
-# class CRNN(nn.Module):
-#     def __init__(self, ):
+        out = self.fc(x)
+        # print("Final output:", out.shape)
+        return out
