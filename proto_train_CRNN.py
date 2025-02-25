@@ -40,7 +40,7 @@ logger.info(f'DATA path: {cfg.PATH.TRAIN_PATH}')
 if __name__ == '__main__':
 
     # 데이터셋 구성 & 음향 전처리
-    datas_law = np.load(cfg.PATH.TRAIN_PATH)
+    datas_law = np.load(cfg.PATH.TEST_PATH)
     data_audio = datas_law[:, 0:-1] #오디오 피처 그대로임
     data_label = datas_law[:, -1]
     data_audio_std = deepcopy(data_audio)
@@ -66,7 +66,7 @@ if __name__ == '__main__':
 
     # # 모델 인스턴스 생성 - 여기 채워!!!
     # model = CRNN_base().to(device)
-    model = CRNN_5().to(device)
+    model = CRNN_3().to(device)
 
     # 손실 함수 및 최적화 알고리즘 정의
     criterion = nn.CrossEntropyLoss()
@@ -85,3 +85,18 @@ if __name__ == '__main__':
     # 모델 저장 - 중간중간 저장하는 기능 필요?
     torch.save(model.state_dict(), cfg.PATH.MODEL_PATH)
     logger.info(f"Model saved: {cfg.PATH.MODEL_PATH}")
+
+    data_raw = np.load(cfg.PATH.TEST_PATH)
+    data_audio = data_raw[:, 0:-1]
+    data_label = data_raw[:, -1]
+    data_audio_std = deepcopy(data_audio)
+
+    # audio standardization to mean 0, variance 1
+    for i, row in enumerate(data_audio):
+        row_std = (row - np.mean(row)) / np.std(row)
+        data_audio_std[i, :] = row
+
+    test_set = RawWaveformDataset(data_audio_std, data_label)
+    test_loader = DataLoader(test_set, batch_size=1, shuffle=False)
+
+    print(eval_metrics_device(model, test_loader, cfg.HYPERPARAMS.LABEL_CLASS, device=device))

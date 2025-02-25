@@ -78,9 +78,9 @@ class CRNN_base(nn.Module):
         # print("Final output:", out.shape)
         return out
 
-class CRNN_5(nn.Module):
+class CRNN_3(nn.Module):
     def __init__(self, input_dim=24, hidden_dim=128, num_layers=2, output_dim=3):
-        super(CRNN_5, self).__init__()
+        super(CRNN_3, self).__init__()
         self.cnn1 = nn.Conv1d(
             in_channels=1,
             out_channels=64,

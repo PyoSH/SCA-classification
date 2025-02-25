@@ -48,6 +48,8 @@ def eval_metrics(model, test_loader, classes):
     y_preds = None
     iter = False
 
+    model.eval()
+
     with torch.no_grad():
         for inputs, labels in test_loader:
             outputs = model(inputs)
@@ -72,6 +74,8 @@ def eval_metrics_device(model, test_loader, classes, device):
     y_trues = None
     y_preds = None
     iter = False
+
+    model.eval()
 
     with torch.no_grad():
         for inputs, labels in test_loader:
