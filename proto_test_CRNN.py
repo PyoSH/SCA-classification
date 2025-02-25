@@ -33,7 +33,7 @@ mfcc_const = MFCC_params(cfg.FEATUREPARAMS.SAMPLING_RATE, cfg.FEATUREPARAMS.NUM_
 if __name__ == '__main__':
 
     # 학습된 모델 불러오기
-    model = CRNN_base(input_dim=101)
+    model = CRNN_5()
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH))
 
     acc_array = []

@@ -12,7 +12,6 @@ import torch.optim as optim
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from loguru import logger
-from torchinfo import summary
 
 def evaluate_model(model, test_loader):
     model.eval()

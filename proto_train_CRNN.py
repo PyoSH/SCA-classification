@@ -65,7 +65,8 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_dataset, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=False)
 
     # # 모델 인스턴스 생성 - 여기 채워!!!
-    model = CRNN_base(input_dim=101).to(device)
+    # model = CRNN_base().to(device)
+    model = CRNN_5().to(device)
 
     # 손실 함수 및 최적화 알고리즘 정의
     criterion = nn.CrossEntropyLoss()
