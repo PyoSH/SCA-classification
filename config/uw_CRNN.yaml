@@ -2,8 +2,8 @@
 
 PATH:
   TRAIN_PATH: ./data/dataset/uw_train.npy
-  TEST_PATH: ./data/dataset/uw_test.npy
-  MODEL_PATH: ./results/CRNN_uw.pth #this model will be made in path
+  TEST_PATH: ./data/dataset/uw_cutting.npy
+  MODEL_PATH: ./results/CRNN_uw_all.pth #this model will be made in path
 HYPERPARAMS:
   MODELTYPE: 'CRNN'
   HIDDEN_SIZE: 128

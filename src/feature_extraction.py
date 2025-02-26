@@ -3,8 +3,7 @@ import librosa
 import numpy as np
 import torch
 from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import minmax_scale
-import copy
+import matplotlib.pyplot as plt
 
 class MFCC_params():
     def __init__(self, samplingRate, num_CepstralCs, hop_length, len_window):
@@ -82,3 +81,91 @@ def get_frame_to_mfcc(data, samplingRate, num_cepstralCoefficient, hop_length, l
     #차원 추가!!!
     featureVector = featureVector[np.newaxis, :, :]
     return featureVector
+
+'''
+CRNN 모델의 합성곱 필터 학습이 어떻게 되었는지 확인하는 함수 
+어디에 둬야 할지 모르겠으니 여기에 둔다
+2025_02_26
+'''
+def viz_filter_map(filters, sampling_rate):
+    out_channels, in_channels, ksize = filters.shape
+
+    filters_avg = filters.mean(axis=1)
+    # (2) 각 필터마다 FFT 수행 & 진폭 계산 ???
+    specs = []
+    for i in range(out_channels):
+        w_time = filters[i, int(in_channels/2), :]
+        # w_time = filters_avg[i, :]
+
+        w_freq = np.fft.rfft(w_time)
+        amp = np.abs(w_freq)
+        specs.append(amp)
+
+    specs = np.stack(specs, axis=0)  # shape : [out_channels, freq_bins]
+
+    # (3) 주파수 축 계산
+    freqs = np.fft.rfftfreq(ksize, d=1.0 / sampling_rate)
+
+    # (4) 필터를 중심 주파수? 등으로 정렬?
+    center_freqs = []
+    for i in range(out_channels):
+        # 필터 i에서 가장 강한 주파수(peak) 위치 찾기
+        peak_idx = np.argmax(specs[i])
+        center_freq = freqs[peak_idx]
+        center_freqs.append(center_freq)
+
+    # 정렬 인덱스 구하기
+    sorted_idx = np.argsort(center_freqs)
+    specs_sorted = specs[sorted_idx, :]
+
+    # (5) 시각화
+    plt.figure(figsize=(8, 6))
+
+    # specs_sorted를 imshow로 표현
+    # extent=[x_min, x_max, y_min, y_max]로 실제 주파수 범위를 표시
+    plt.imshow(specs_sorted.T,
+               aspect='auto',
+               origin='lower',
+               extent=[0, out_channels, freqs[0], freqs[-1]])
+
+    plt.colorbar(label="Amplitude")
+    plt.ylabel("Frequency (Hz)")
+    plt.xlabel("Filters (sorted by center frequency)")
+    plt.title("Learned Filters in Frequency Domain")
+    plt.show()
+
+def viz_feature_map(model, section, data_audio_std, device):
+    activations = {}
+
+    def get_activation(name):
+        def hook(model, input, output):
+            activations[name] = output.detach()  # 미분 기록 제거하고 저장
+
+        return hook
+
+    layer = getattr(model, section)
+    layer.register_forward_hook(get_activation(section))
+
+    input_audio = torch.tensor(data_audio_std[:, :], dtype=torch.float32).unsqueeze(1).to(device)
+
+    output = model(input_audio)
+    _, predicted = torch.max(output.data, 1)
+    pred_np = predicted.cpu().numpy()
+    print(pred_np)
+
+    feature_maps = activations[section].cpu()
+
+    # 배치 차원 제거 (단일 샘플에 대한 활성화만 시각화)
+    feature_maps = feature_maps.squeeze(0)  # shape: [channels, time]
+
+    # 시각화: 각 행은 하나의 채널, 열은 시간축에 따른 활성화 값
+    plt.figure(figsize=(10, 8))
+    plt.imshow(feature_maps, aspect='auto', origin='lower',
+               interpolation='nearest', cmap='viridis')
+    plt.colorbar(label='Activation')
+    plt.xlabel('Reduced Time Index')
+    plt.ylabel('Channel')
+    plt.title(f'Feature Maps from {section} Layer')
+    plt.show()
+
+
