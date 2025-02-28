@@ -42,18 +42,17 @@ if __name__ == '__main__':
     model.eval()
 
     # 모델의 cnn1 레이어 가중치 추출 (shape: [out_channels, in_channels, kernel_size])
-    # filters = model.cnn3.weight.data.cpu().numpy()  # CPU로 이동
-    # viz_filter_map(filters, 44100)
+    viz_filter_map(model, "cnn1", 0,44100)
 
-    # 데이터 불러오고, 모델에 넣을 준비
-    data_raw = np.load(cfg.PATH.TEST_PATH)
-    data_audio = data_raw[:, 0:-1]
-    data_label = data_raw[:, -1]
-    data_audio_std = deepcopy(data_audio)
-
-    # audio standardization to mean 0, variance 1
-    for i, row in enumerate(data_audio):
-        row_std = (row - np.mean(row)) / np.std(row)
-        data_audio_std[i, :] = row
-
-    viz_feature_map(model, "cnn3", data_audio_std, device)
+    # # 데이터 불러오고, 모델에 넣을 준비
+    # data_raw = np.load(cfg.PATH.TEST_PATH)
+    # data_audio = data_raw[:, 0:-1]
+    # data_label = data_raw[:, -1]
+    # data_audio_std = deepcopy(data_audio)
+    #
+    # # audio standardization to mean 0, variance 1
+    # for i, row in enumerate(data_audio):
+    #     row_std = (row - np.mean(row)) / np.std(row)
+    #     data_audio_std[i, :] = row
+    #
+    # viz_feature_map(model, "cnn3", data_audio_std, device)

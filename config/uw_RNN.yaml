@@ -1,8 +1,8 @@
 # parameters for train model
 
 PATH:
-  TRAIN_PATH: ./data/dataset/uw_train.npy
-  TEST_PATH: ./data/dataset/uw_test.npy
+  TRAIN_PATH: ./data/dataset/uw_train_2nd.npy
+  TEST_PATH: ./data/dataset/uw_cutting.npy
   MODEL_PATH: ./results/RNN_uw.pth #this model will be made in path
 HYPERPARAMS:
   MODELTYPE: 'RNN'

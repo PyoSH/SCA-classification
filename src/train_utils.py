@@ -80,8 +80,10 @@ def eval_metrics_device(model, test_loader, classes, device):
     with torch.no_grad():
         for inputs, labels in test_loader:
             inputs = inputs.to(device)  # GPU로 이동
+            logger.info("model in")
             labels = labels.to(device)
             outputs = model(inputs)
+            logger.info("model out", outputs)
             _, predicted = torch.max(outputs.data, 1)
             labels_np = labels.cpu().numpy()
             pred_np = predicted.cpu().numpy()

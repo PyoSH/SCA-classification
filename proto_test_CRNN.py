@@ -21,6 +21,7 @@ elif torch.cuda.is_available():
     logger.info(f'GPU device found: {torch.cuda.get_device_name(0)}')
 else:
     device = torch.device("cpu")
+# device = torch.device("cpu")
 logger.info(f'selected device: {device}')
 
 parser = argparse.ArgumentParser(description='Running audio classification')
@@ -49,8 +50,6 @@ if __name__ == '__main__':
     model = CRNN_3().to(device)
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
     model.eval()
-
-    acc_array = []
 
     data_raw = np.load(cfg.PATH.TEST_PATH)
     data_audio = data_raw[:, 0:-1]

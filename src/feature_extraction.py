@@ -87,14 +87,16 @@ CRNN 모델의 합성곱 필터 학습이 어떻게 되었는지 확인하는 �
 어디에 둬야 할지 모르겠으니 여기에 둔다
 2025_02_26
 '''
-def viz_filter_map(filters, sampling_rate):
+def viz_filter_map(model, section, idx_ch, sampling_rate):
+    layer = getattr(model, section)
+    filters = layer.weight.data.cpu().numpy()  # CPU로 이동
     out_channels, in_channels, ksize = filters.shape
 
     filters_avg = filters.mean(axis=1)
     # (2) 각 필터마다 FFT 수행 & 진폭 계산 ???
     specs = []
     for i in range(out_channels):
-        w_time = filters[i, int(in_channels/2), :]
+        w_time = filters[i, idx_ch, :]
         # w_time = filters_avg[i, :]
 
         w_freq = np.fft.rfft(w_time)
@@ -131,7 +133,7 @@ def viz_filter_map(filters, sampling_rate):
     plt.colorbar(label="Amplitude")
     plt.ylabel("Frequency (Hz)")
     plt.xlabel("Filters (sorted by center frequency)")
-    plt.title("Learned Filters in Frequency Domain")
+    plt.title(f"Learned Filters of {section} in Frequency Domain")
     plt.show()
 
 def viz_feature_map(model, section, data_audio_std, device):
