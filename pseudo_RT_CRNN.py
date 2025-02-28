@@ -3,8 +3,6 @@
 표승현 2024-04-04
 '''
 from copy import deepcopy
-from symbol import test_nocond
-
 from src.model_definition import *
 from src.train_utils import *
 from src.dataset import *
@@ -16,14 +14,14 @@ import time
 
 # 디바이스 설정: Apple Silicon의 MPS, CUDA, 또는 CPU
 device = None
-    # if torch.backends.mps.is_available():
-    #     device = torch.device("mps")
-    # elif torch.cuda.is_available():
-    #     device = torch.device("cuda")
-    #     logger.info(f'GPU device found: {torch.cuda.get_device_name(0)}')
-    # else:
-    #     device = torch.device("cpu")
-device = torch.device("cpu")
+if torch.backends.mps.is_available():
+    device = torch.device("mps")
+elif torch.cuda.is_available():
+    device = torch.device("cuda")
+    logger.info(f'GPU device found: {torch.cuda.get_device_name(0)}')
+else:
+    device = torch.device("cpu")
+# device = torch.device("cpu")
 logger.info(f'selected device: {device}')
 
 parser = argparse.ArgumentParser(description='Running audio classification')
@@ -84,7 +82,7 @@ if __name__ == '__main__':
         logger.info(f'start, {raw_audio.shape}')
         start_t = time.time()
 
-        if cfg.HYPERPARAMS.MODELTYPE == ('RNN' or 'LSTM'):
+        if cfg.HYPERPARAMS.MODELTYPE != 'CRNN':
             featureVector = get_frame_to_mfcc(raw_audio, samplingRate=mfcc_const.sr,
                                               num_cepstralCoefficient=mfcc_const.n_mfcc,
                                               hop_length=mfcc_const.hop_length, len_fft=mfcc_const.len_fft)
