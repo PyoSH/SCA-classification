@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from src.model_definition import *
 from src.train_utils import *
 from src.dataset import *
@@ -31,7 +33,7 @@ if not os.path.exists(cfg.PATH.TRAIN_PATH):
 else:
     logger.info("Dataset found :) ")
 
-logger.info("Running proto_train ...")
+logger.info("Running train code ...")
 logger.info(f'DATA path: {cfg.PATH.TRAIN_PATH}')
 
 mfcc_const = MFCC_params(cfg.FEATUREPARAMS.SAMPLING_RATE, cfg.FEATUREPARAMS.NUM_CEPSTRAL_COEFFICIENTS,
@@ -53,7 +55,7 @@ if __name__ == '__main__':
         data_audio_input = data_featureVector
 
     elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
-        data_audio_std = np.zeros_like(data_audio)
+        data_audio_std = deepcopy(data_audio)
 
         # audio standardization to mean 0, variance 1
         for i, row in enumerate(data_audio):

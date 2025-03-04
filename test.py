@@ -9,6 +9,7 @@ from config import cfg, update_config
 import numpy as np
 import argparse
 from loguru import logger
+from copy import deepcopy
 
 # 디바이스 설정: Apple Silicon의 MPS, CUDA, 또는 CPU
 device = None
@@ -36,7 +37,7 @@ if not os.path.exists(cfg.PATH.TEST_PATH):
 else:
     logger.info("Data found! :) ")
 
-logger.info("Running proto_test ...")
+logger.info("Running test code ...")
 logger.info(f'MODEL path: {cfg.PATH.MODEL_PATH} \n DATA path: {cfg.PATH.TEST_PATH}')
 
 mfcc_const = MFCC_params(cfg.FEATUREPARAMS.SAMPLING_RATE, cfg.FEATUREPARAMS.NUM_CEPSTRAL_COEFFICIENTS,
@@ -58,7 +59,7 @@ if __name__ == '__main__':
         model = CRNN_3().to(device)
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
-    model.eval()
+    # model.eval()
 
     data_law = np.load(cfg.PATH.TEST_PATH)
     data_audio = data_law[:, 0:-1]
@@ -73,7 +74,7 @@ if __name__ == '__main__':
         test_set = AudioDataset(data_featureVector, data_label, input_size=mfcc_const.n_mfcc)
 
     elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
-        data_audio_std = np.zeros_like(data_audio)
+        data_audio_std = deepcopy(data_audio)
 
         # audio standardization to mean 0, variance 1
         for i, row in enumerate(data_audio):

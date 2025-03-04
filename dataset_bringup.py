@@ -18,7 +18,7 @@ parser.add_argument('--cfg',
 
 args = parser.parse_args()
 update_config(cfg, args)
-dataSet_path = cfg.PATH.TEST_PATH # !!!!!TRAIN_PATH or TEST_PATH
+dataSet_path = cfg.PATH.TRAIN_PATH # !!!!!TRAIN_PATH or TEST_PATH
 logger.info("Running dataset_bringup ...")
 logger.info(f'DATA path: {dataSet_path}')
 
@@ -28,7 +28,7 @@ len_frame_time = cfg.HYPERPARAMS.LEN_FRAME * 0.001 # 100 ms = 0.1 s
 len_frame_sample = int(len_frame_time * sample_rate) # sample num = 2205, 100ms frame = 4410 samples.
 
 # dataPath = os.path.join('data', 'inspection' ,'unknown') # or 'train' !!!!!!
-dataPath = os.path.join('data', 'test_uw') # or 'train' !!!!!!
+dataPath = os.path.join('data', 'train_uw') # or 'train' !!!!!!
 audioPathList = os.path.join(dataPath, 'audio')
 labelPathList = os.path.join(dataPath, 'label')
 

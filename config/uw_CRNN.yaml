@@ -2,15 +2,15 @@
 
 PATH:
   TRAIN_PATH: ./data/dataset/uw_train_2nd.npy
-  TEST_PATH: ./data/dataset/uw_cutting.npy
-  MODEL_PATH: ./results/CRNN_uw_all.pth #this model will be made in path
+  TEST_PATH: ./data/dataset/uw_test.npy
+  MODEL_PATH: ./results/CRNN3_uw_400.pth #this model will be made in path
 HYPERPARAMS:
   MODELTYPE: 'CRNN'
   HIDDEN_SIZE: 128
   NUM_LAYERS: 2
   NUM_CLASSES: 3
   BATCH_SIZE: 128
-  NUM_EPOCHS: 100
+  NUM_EPOCHS: 400
   LEARNING_RATE: 0.001
   LABEL_CLASS: ['unknown','idling', 'cutting']
   LEN_FRAME: 150 # [ms]

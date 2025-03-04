@@ -2,7 +2,7 @@
 
 PATH:
   TRAIN_PATH: ./data/dataset/uw_train_2nd.npy
-  TEST_PATH: ./data/dataset/uw_cutting.npy
+  TEST_PATH: ./data/dataset/uw_test.npy
   MODEL_PATH: ./results/LSTM_uw.pth #this model will be made in path
 HYPERPARAMS:
   MODELTYPE: 'LSTM'
