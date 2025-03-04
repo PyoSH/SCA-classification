@@ -53,6 +53,9 @@ if __name__ == '__main__':
         model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
                           num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
                           output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
+        model = CRNN_3().to(device)
+
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
 
     # 입력장치 선택
@@ -83,15 +86,21 @@ if __name__ == '__main__':
             start_t = time.time()
             logger.info(f'audio read done, {input_np.shape}')
 
-            featureVector = get_frame_to_mfcc(input_np, samplingRate=mfcc_const.sr, num_cepstralCoefficient=mfcc_const.n_mfcc,
-                              hop_length=mfcc_const.hop_length, len_fft=mfcc_const.len_fft)
-            logger.info('audio MFCC processed')
+            tensor_audio = None
+            if cfg.HYPERPARAMS.MODELTYPE != 'CRNN':
+                featureVector = get_frame_to_mfcc(input_np, samplingRate=mfcc_const.sr,
+                                                  num_cepstralCoefficient=mfcc_const.n_mfcc,
+                                                  hop_length=mfcc_const.hop_length, len_fft=mfcc_const.len_fft)
+                logger.info('audio MFCC processed')
+                tensor_audio = torch.tensor(featureVector[:, :, :mfcc_const.n_mfcc], dtype=torch.float32).to(device)  # 입력 텐서 주의!!!!
 
-            input_tensor = torch.tensor(featureVector[:, :, :mfcc_const.n_mfcc], dtype=torch.float32).to(device) # 입력 텐서 주의!!!!
+            elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
+                tensor_audio = torch.tensor(input_np, dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(device)
+
             # logger.info('(2,3]')
             with torch.no_grad():
                 model.eval()
-                outputs = model(input_tensor)
+                outputs = model(tensor_audio)
 
             end_t = time.time()
             logger.info('predict done')

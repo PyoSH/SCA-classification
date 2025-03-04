@@ -12,14 +12,14 @@ from loguru import logger
 
 # 디바이스 설정: Apple Silicon의 MPS, CUDA, 또는 CPU
 device = None
-# if torch.backends.mps.is_available():
-#     device = torch.device("mps")
-# elif torch.cuda.is_available():
-#     device = torch.device("cuda")
-#     logger.info(f'GPU device found: {torch.cuda.get_device_name(0)}')
-# else:
-#     device = torch.device("cpu")
-device = torch.device("cpu")
+if torch.backends.mps.is_available():
+    device = torch.device("mps")
+elif torch.cuda.is_available():
+    device = torch.device("cuda")
+    logger.info(f'GPU device found: {torch.cuda.get_device_name(0)}')
+else:
+    device = torch.device("cpu")
+# device = torch.device("cpu")
 logger.info(f'selected device: {device}')
 
 parser = argparse.ArgumentParser(description='Running audio classification')
@@ -54,16 +54,34 @@ if __name__ == '__main__':
         model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
                           num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
                           output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
+        model = CRNN_3().to(device)
+
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
     model.eval()
 
     data_law = np.load(cfg.PATH.TEST_PATH)
     data_audio = data_law[:, 0:-1]
     data_label = data_law[:, -1]
-    logger.info("data in - before MFCC")
-    data_featureVector = audioProcessing(data_audio, mfcc_const)
-    logger.info("data in - after MFCC")
-    test_set = AudioDataset(data_featureVector, data_label, input_size=mfcc_const.n_mfcc)
+
+    test_set = None
+
+    if cfg.HYPERPARAMS.MODELTYPE != 'CRNN':
+        logger.info("data in - before MFCC")
+        data_featureVector = audioProcessing(data_audio, mfcc_const)
+        logger.info("data in - after MFCC")
+        test_set = AudioDataset(data_featureVector, data_label, input_size=mfcc_const.n_mfcc)
+
+    elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
+        data_audio_std = np.zeros_like(data_audio)
+
+        # audio standardization to mean 0, variance 1
+        for i, row in enumerate(data_audio):
+            row_std = (row - np.mean(row)) / np.std(row)
+            data_audio_std[i, :] = row
+
+        test_set = RawWaveformDataset(data_audio_std, data_label)
+
     # test_loader = DataLoader(test_set, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=False)
     test_loader = DataLoader(test_set, batch_size=1, shuffle=False)
 
