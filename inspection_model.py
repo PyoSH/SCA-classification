@@ -40,19 +40,30 @@ if __name__ == '__main__':
     model = CRNN_3().to(device)
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
     model.eval()
+    for i in [1,2,3]:
+        layer = "cnn"+str(i)
+        ch_arr = []
+        if i == 1:
+            ch_arr=[0]
+        elif i == 2:
+            ch_arr = [0, 31, -1]
+        elif i == 3:
+            ch_arr = [0, 63, -1]
 
-    # 모델의 cnn1 레이어 가중치 추출 (shape: [out_channels, in_channels, kernel_size])
-    viz_filter_map(model, "cnn1", 0,44100)
+        for j in ch_arr:
+            ch_idx = int(j)
+            # 모델의 cnn1 레이어 가중치 추출 (shape: [out_channels, in_channels, kernel_size])
+            sorted_idx = viz_filter_map(model, layer, ch_idx,44100)
 
-    # # 데이터 불러오고, 모델에 넣을 준비
-    # data_raw = np.load(cfg.PATH.TEST_PATH)
-    # data_audio = data_raw[:, 0:-1]
-    # data_label = data_raw[:, -1]
-    # data_audio_std = deepcopy(data_audio)
-    #
-    # # audio standardization to mean 0, variance 1
-    # for i, row in enumerate(data_audio):
-    #     row_std = (row - np.mean(row)) / np.std(row)
-    #     data_audio_std[i, :] = row
-    #
-    # viz_feature_map(model, "cnn3", data_audio_std, device)
+            # # 데이터 불러오고, 모델에 넣을 준비
+            data_raw = np.load(cfg.PATH.TEST_PATH)
+            data_audio = data_raw[:, 0:-1]
+            data_label = data_raw[:, -1]
+            data_audio_std = deepcopy(data_audio)
+
+            # audio standardization to mean 0, variance 1
+            for i, row in enumerate(data_audio):
+                row_std = (row - np.mean(row)) / np.std(row)
+                data_audio_std[i, :] = row
+
+            viz_feature_map(model, layer, ch_idx, sorted_idx, data_audio_std, device)

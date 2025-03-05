@@ -125,18 +125,20 @@ def viz_filter_map(model, section, idx_ch, sampling_rate):
 
     # specs_sorted를 imshow로 표현
     # extent=[x_min, x_max, y_min, y_max]로 실제 주파수 범위를 표시
-    plt.imshow(specs_sorted.T,
+    plt.imshow(specs_sorted,
                aspect='auto',
                origin='lower',
-               extent=[0, out_channels, freqs[0], freqs[-1]])
+               extent=[freqs[0], freqs[-1], 0, out_channels])
 
     plt.colorbar(label="Amplitude")
-    plt.ylabel("Frequency (Hz)")
-    plt.xlabel("Filters (sorted by center frequency)")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Filters (sorted by center frequency)")
     plt.title(f"Learned Filters of {section} in Frequency Domain")
     plt.show()
 
-def viz_feature_map(model, section, data_audio_std, device):
+    return sorted_idx
+
+def viz_feature_map(model, section, ch_idx, sorted_idx, data_audio_std, device):
     activations = {}
 
     def get_activation(name):
@@ -159,15 +161,19 @@ def viz_feature_map(model, section, data_audio_std, device):
 
     # 배치 차원 제거 (단일 샘플에 대한 활성화만 시각화)
     feature_maps = feature_maps.squeeze(0)  # shape: [channels, time]
+    feature_sorted = feature_maps[sorted_idx, :]
+
 
     # 시각화: 각 행은 하나의 채널, 열은 시간축에 따른 활성화 값
     plt.figure(figsize=(10, 8))
-    plt.imshow(feature_maps, aspect='auto', origin='lower',
+    plt.imshow(feature_sorted,
+               aspect='auto',
+               origin='lower',
                interpolation='nearest', cmap='viridis')
     plt.colorbar(label='Activation')
     plt.xlabel('Reduced Time Index')
-    plt.ylabel('Channel')
-    plt.title(f'Feature Maps from {section} Layer')
+    plt.ylabel('Channels (sorted from weights)')
+    plt.title(f'Feature Maps from {section} Layer, {ch_idx}th channel')
     plt.show()
 
 
