@@ -41,7 +41,8 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
     model.eval()
     for i in [1,2,3]:
-        layer = "cnn"+str(i)
+        layer_pooling = "pool"+str(i)
+        layer_CNN = "cnn" + str(i)
         ch_arr = []
         if i == 1:
             ch_arr=[0]
@@ -53,7 +54,7 @@ if __name__ == '__main__':
         for j in ch_arr:
             ch_idx = int(j)
             # 모델의 cnn1 레이어 가중치 추출 (shape: [out_channels, in_channels, kernel_size])
-            sorted_idx = viz_filter_map(model, layer, ch_idx,44100)
+            sorted_idx = viz_filter_map(model, layer_CNN, ch_idx,44100)
 
             # # 데이터 불러오고, 모델에 넣을 준비
             data_raw = np.load(cfg.PATH.TEST_PATH)
@@ -66,4 +67,5 @@ if __name__ == '__main__':
                 row_std = (row - np.mean(row)) / np.std(row)
                 data_audio_std[i, :] = row
 
-            viz_feature_map(model, layer, ch_idx, sorted_idx, data_audio_std, device)
+            # viz_feature_map(model, layer_pooling, ch_idx, sorted_idx, data_audio_std, device)
+            viz_feature_map(model, layer_CNN, ch_idx, sorted_idx, data_audio_std, device)
