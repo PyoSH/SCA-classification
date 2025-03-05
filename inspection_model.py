@@ -36,6 +36,9 @@ logger.info(f'MODEL path: {cfg.PATH.MODEL_PATH}')
 
 
 if __name__ == '__main__':
+
+    working_state = "unknown"
+
     # (1) 학습된 모델의 CNN layer 에서 가중치 추출
     model = CRNN_3().to(device)
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
@@ -67,5 +70,5 @@ if __name__ == '__main__':
                 row_std = (row - np.mean(row)) / np.std(row)
                 data_audio_std[i, :] = row
 
-            # viz_feature_map(model, layer_pooling, ch_idx, sorted_idx, data_audio_std, device)
-            viz_feature_map(model, layer_CNN, ch_idx, sorted_idx, data_audio_std, device)
+            viz_feature_map(model, layer_pooling, ch_idx, sorted_idx, data_audio_std, device, working_state)
+            viz_feature_map(model, layer_CNN, ch_idx, sorted_idx, data_audio_std, device, working_state)

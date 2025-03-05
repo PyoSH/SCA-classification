@@ -79,7 +79,7 @@ class CRNN_base(nn.Module):
         return out
 
 class CRNN_3(nn.Module):
-    def __init__(self, input_dim=24, hidden_dim=128, num_layers=2, output_dim=3):
+    def __init__(self, input_dim=128, hidden_dim=128, num_layers=2, output_dim=3):
         super(CRNN_3, self).__init__()
         self.cnn1 = nn.Conv1d(
             in_channels=1,
@@ -133,12 +133,15 @@ class CRNN_3(nn.Module):
         # print("After pool2:", x.shape)
 
         x = self.cnn3(x)
-        # print("After cnn2:", x.shape)
+        # print("After cnn3:", x.shape)
         x = self.bn3(x)
         x = F.relu(x)
         x = self.pool3(x)
-        # print("After pool2:", x.shape)
+        # print("After pool3:", x.shape)
 
+        # transpose [batch size, features, seq len] to [batch size, seq len, features]
+        x = x.transpose(1,2)
+        # print("transpose:", x.shape)
 
         lstm_out, _ = self.lstm(x)
         # print("After LSTM:", lstm_out.shape)

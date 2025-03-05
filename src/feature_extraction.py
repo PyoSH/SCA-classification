@@ -121,24 +121,31 @@ def viz_filter_map(model, section, idx_ch, sampling_rate):
     specs_sorted = specs[sorted_idx, :]
 
     # (5) 시각화
-    # plt.figure(figsize=(8, 6))
-    #
-    # # specs_sorted를 imshow로 표현
-    # # extent=[x_min, x_max, y_min, y_max]로 실제 주파수 범위를 표시
-    # plt.imshow(specs_sorted,
-    #            aspect='auto',
-    #            origin='lower',
-    #            extent=[freqs[0], freqs[-1], 0, out_channels])
-    #
-    # plt.colorbar(label="Amplitude")
-    # plt.xlabel("Frequency (Hz)")
-    # plt.ylabel("Filters (sorted by center frequency)")
-    # plt.title(f"Learned Filters of {section} in Frequency Domain")
+    plt.figure(figsize=(8, 6))
+
+    # specs_sorted를 imshow로 표현
+    # extent=[x_min, x_max, y_min, y_max]로 실제 주파수 범위를 표시
+    plt.imshow(specs_sorted,
+               aspect='auto',
+               origin='lower',
+               extent=[freqs[0], freqs[-1], 0, out_channels])
+
+    plt.colorbar(label="Amplitude")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Filters (sorted by center frequency)")
+    plt.title(f"Learned Filters of {section} in Frequency Domain")
     # plt.show()
+
+    ch_str = None
+    if idx_ch == -1: ch_str = "last"
+    else: ch_str = str(idx_ch)
+    prefix = os.path.join('pics', 'CNN', 'weight','ordered')
+    file_name_str = f'{section}_{ch_str}.png'
+    plt.savefig(os.path.join(prefix, file_name_str))
 
     return sorted_idx
 
-def viz_feature_map(model, section, ch_idx, sorted_idx, data_audio_std, device):
+def viz_feature_map(model, section, ch_idx, sorted_idx, data_audio_std, device, working_state):
     activations = {}
 
     def get_activation(name):
@@ -152,6 +159,8 @@ def viz_feature_map(model, section, ch_idx, sorted_idx, data_audio_std, device):
 
     input_audio = torch.tensor(data_audio_std[:, :], dtype=torch.float32).unsqueeze(1).to(device)
 
+    model.eval()
+
     output = model(input_audio)
     _, predicted = torch.max(output.data, 1)
     pred_np = predicted.cpu().numpy()
@@ -163,10 +172,9 @@ def viz_feature_map(model, section, ch_idx, sorted_idx, data_audio_std, device):
     feature_maps = feature_maps.squeeze(0)  # shape: [channels, time]
     feature_sorted = feature_maps[sorted_idx, :]
 
-
     # 시각화: 각 행은 하나의 채널, 열은 시간축에 따른 활성화 값
     plt.figure(figsize=(10, 8))
-    plt.imshow(feature_maps,
+    plt.imshow(feature_sorted,
                aspect='auto',
                origin='lower',
                interpolation='nearest', cmap='viridis')
@@ -177,10 +185,14 @@ def viz_feature_map(model, section, ch_idx, sorted_idx, data_audio_std, device):
     # plt.show()
 
     ch_str = None
-    # prefix = os.path.join('pics', 'pooling','ordered','cutting')
-    prefix = os.path.join('pics', 'CNN', 'unordered', 'cutting')
+    if "cnn" in section:
+        prefix = os.path.join('pics', 'CNN', 'feature', 'ordered', working_state)
+    elif "pool" in section:
+        prefix = os.path.join('pics', 'pooling','ordered',working_state)
+
     if ch_idx == -1: ch_str = "last"
     else: ch_str = str(ch_idx)
+
     file_name_str = f'{section}_{ch_str}.png'
     plt.savefig(os.path.join(prefix, file_name_str))
 

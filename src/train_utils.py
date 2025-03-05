@@ -150,8 +150,8 @@ def plot_comparison(y_ts, y_ps, classes, show='True'):
 
     plt.subplot(2, 1, 2)
     # plt.plot(x, y_ps ,  color='green', linestyle='-', marker='', label='LSTM predicted', linewidth=1)
-    # plt.plot(x, y_ps, color='blue', linestyle='-', marker='', label='RNN predicted', linewidth=1)
-    plt.plot(x, y_ps, color='cyan', linestyle='-', marker='', label='CRNN predicted', linewidth=1)
+    plt.plot(x, y_ps, color='blue', linestyle='-', marker='', label='RNN predicted', linewidth=1)
+    # plt.plot(x, y_ps, color='cyan', linestyle='-', marker='', label='CRNN predicted', linewidth=1)
     plt.xlabel('Audio frame')
     plt.ylabel('Operational situation')
 
