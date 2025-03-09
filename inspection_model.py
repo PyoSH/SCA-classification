@@ -40,7 +40,11 @@ if __name__ == '__main__':
     working_state = "unknown"
 
     # (1) 학습된 모델의 CNN layer 에서 가중치 추출
-    model = CRNN_3().to(device)
+    if cfg.HYPERPARAMS.MODELTYPE == 'CLSTM':
+        model = CLSTM_3().to(device)
+    elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
+        model = CRNN_3().to(device)
+
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
     model.eval()
     for i in [1,2,3]:
