@@ -1,7 +1,5 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from sympy import transpose
-
 
 class LSTMModel(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim):

@@ -9,7 +9,6 @@ import sklearn.metrics as metrics
 from sklearn.metrics import ConfusionMatrixDisplay
 from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
-import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from loguru import logger
 
@@ -64,7 +63,7 @@ def eval_metrics(model, test_loader, classes):
                 y_trues = np.concatenate((y_trues, labels_np), axis=0)
                 y_preds = np.concatenate((y_preds, pred_np), axis=0)
 
-    plot_comparison(y_trues, y_preds, classes=classes)
+    plot_comparison(model.name, y_trues, y_preds, classes=classes)
     # plot_cm(model.name, y_trues, y_preds, classes=classes)
 
     return metrics.classification_report(y_trues, y_preds, zero_division=0)
@@ -94,7 +93,7 @@ def eval_metrics_device(model, test_loader, classes, device):
                 y_trues = np.concatenate((y_trues, labels_np), axis=0)
                 y_preds = np.concatenate((y_preds, pred_np), axis=0)
 
-    plot_comparison(y_trues, y_preds, classes=classes)
+    plot_comparison(model.name, y_trues, y_preds, classes=classes)
     # plot_cm(model.name, y_trues, y_preds, classes=classes)
 
     return metrics.classification_report(y_trues, y_preds, zero_division=0)
@@ -142,7 +141,7 @@ def plot_cm(model_name, y_true, y_pred, classes, show='True'):
     file_name_str = f'CM_{model_name}.png'
     plt.savefig(os.path.join(prefix, file_name_str))
 
-def plot_comparison(y_ts, y_ps, classes, show='True'):
+def plot_comparison(model_type, y_ts, y_ps, classes, show='True'):
     x = np.arange(len(y_ts))
 
     plt.figure(figsize=(12, 6))
@@ -156,9 +155,15 @@ def plot_comparison(y_ts, y_ps, classes, show='True'):
     plt.title('Comparison of real-time prediction and GT')
 
     plt.subplot(2, 1, 2)
-    # plt.plot(x, y_ps ,  color='green', linestyle='-', marker='', label='LSTM predicted', linewidth=1)
-    plt.plot(x, y_ps, color='blue', linestyle='-', marker='', label='RNN predicted', linewidth=1)
-    # plt.plot(x, y_ps, color='cyan', linestyle='-', marker='', label='CRNN predicted', linewidth=1)
+    if model_type == 'LSTM':
+        plt.plot(x, y_ps ,  color='green', linestyle='-', marker='', label='LSTM predicted', linewidth=1)
+    elif model_type == 'LSTM':
+        plt.plot(x, y_ps, color='blue', linestyle='-', marker='', label='RNN predicted', linewidth=1)
+    elif model_type == 'CRNN_3':
+        plt.plot(x, y_ps, color='cyan', linestyle='-', marker='', label='CRNN predicted', linewidth=1)
+    elif model_type == 'CLSTM_3':
+        plt.plot(x, y_ps, color='magenta', linestyle='-', marker='', label='CLSTM predicted', linewidth=1)
+
     plt.xlabel('Audio frame')
     plt.ylabel('Operational situation')
 
