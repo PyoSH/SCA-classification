@@ -65,7 +65,7 @@ def eval_metrics(model, test_loader, classes):
                 y_preds = np.concatenate((y_preds, pred_np), axis=0)
 
     plot_comparison(y_trues, y_preds, classes=classes)
-    # plot_cm(y_trues, y_preds, classes=classes)
+    # plot_cm(model.name, y_trues, y_preds, classes=classes)
 
     return metrics.classification_report(y_trues, y_preds, zero_division=0)
 
@@ -95,11 +95,11 @@ def eval_metrics_device(model, test_loader, classes, device):
                 y_preds = np.concatenate((y_preds, pred_np), axis=0)
 
     plot_comparison(y_trues, y_preds, classes=classes)
-    plot_cm(y_trues, y_preds, classes=classes)
+    # plot_cm(model.name, y_trues, y_preds, classes=classes)
 
     return metrics.classification_report(y_trues, y_preds, zero_division=0)
 
-def plot_graphs(train_losses, test_accuracies):
+def plot_graphs(model_name, train_losses, test_accuracies):
     plt.figure(figsize=(12, 6))
 
     # training loss 그래프
@@ -119,9 +119,12 @@ def plot_graphs(train_losses, test_accuracies):
     plt.legend()
 
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    prefix = os.path.join('pics', 'trains')
+    file_name_str = f'train_curve_{model_name}.png'
+    plt.savefig(os.path.join(prefix, file_name_str))
 
-def plot_cm(y_true, y_pred, classes, show='True'):
+def plot_cm(model_name, y_true, y_pred, classes, show='True'):
 
     mapped_y_true = np.array(classes)[y_true]
     mapped_y_pred = np.array(classes)[y_pred]
@@ -133,7 +136,11 @@ def plot_cm(y_true, y_pred, classes, show='True'):
     plt.xlabel('Predicted')
     plt.ylabel('True')
 
-    plt.show()
+    # plt.show()
+    # plt.show()
+    prefix = os.path.join('pics', 'trains')
+    file_name_str = f'CM_{model_name}.png'
+    plt.savefig(os.path.join(prefix, file_name_str))
 
 def plot_comparison(y_ts, y_ps, classes, show='True'):
     x = np.arange(len(y_ts))
@@ -188,7 +195,7 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, num_epoc
         logger.info(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss:.4f}, Test Accuracy: {test_accuracy:.2f}%')
 
     # training loss 및 test accuracy 그래프 그리기
-    plot_graphs(train_losses, test_accuracies)
+    plot_graphs(model.name, train_losses, test_accuracies)
 
 def train_model_device(model, train_loader, test_loader, criterion, optimizer, num_epochs, device):
     train_losses = []  # 각 epoch의 training loss 기록
@@ -220,4 +227,4 @@ def train_model_device(model, train_loader, test_loader, criterion, optimizer, n
         logger.info(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss:.4f}, Test Accuracy: {test_accuracy:.2f}%')
 
     # training loss 및 test accuracy 그래프 그리기
-    plot_graphs(train_losses, test_accuracies)
+    plot_graphs(model.name, train_losses, test_accuracies)

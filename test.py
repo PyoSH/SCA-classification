@@ -68,14 +68,9 @@ if __name__ == '__main__':
     data_label = data_law[:, -1]
 
     test_set = None
+    is_HybridModel = (cfg.HYPERPARAMS.MODELTYPE[0] == 'C')
 
-    if cfg.HYPERPARAMS.MODELTYPE != 'CRNN':
-        logger.info("data in - before MFCC")
-        data_featureVector = audioProcessing(data_audio, mfcc_const)
-        logger.info("data in - after MFCC")
-        test_set = AudioDataset(data_featureVector, data_label, input_size=mfcc_const.n_mfcc)
-
-    elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
+    if is_HybridModel:
         data_audio_std = deepcopy(data_audio)
 
         # audio standardization to mean 0, variance 1
@@ -84,6 +79,11 @@ if __name__ == '__main__':
             data_audio_std[i, :] = row
 
         test_set = RawWaveformDataset(data_audio_std, data_label)
+    else:
+        logger.info("data in - before MFCC")
+        data_featureVector = audioProcessing(data_audio, mfcc_const)
+        logger.info("data in - after MFCC")
+        test_set = AudioDataset(data_featureVector, data_label, input_size=mfcc_const.n_mfcc)
 
     # test_loader = DataLoader(test_set, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=False)
     test_loader = DataLoader(test_set, batch_size=1, shuffle=False)

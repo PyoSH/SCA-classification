@@ -6,6 +6,8 @@ from sympy import transpose
 class LSTMModel(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
         super(LSTMModel, self).__init__()
+        self.name = "LSTM"
+
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
         self.fc = nn.Linear(hidden_dim, output_dim)
 
@@ -17,6 +19,8 @@ class LSTMModel(nn.Module):
 class RNNModel(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
         super(RNNModel, self).__init__()
+        self.name = "RNN"
+
         self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True)
         self.fc = nn.Linear(hidden_dim, output_dim)
 
@@ -81,6 +85,8 @@ class CRNN_base(nn.Module):
 class CRNN_3(nn.Module):
     def __init__(self, input_dim=128, hidden_dim=128, num_layers=2, output_dim=3):
         super(CRNN_3, self).__init__()
+        self.name = "CRNN_3"
+
         self.cnn1 = nn.Conv1d(
             in_channels=1,
             out_channels=64,
@@ -155,7 +161,9 @@ class CRNN_3(nn.Module):
 
 class CLSTM_3(nn.Module):
     def __init__(self, input_dim=128, hidden_dim=128, num_layers=2, output_dim=3):
-        super(CRNN_3, self).__init__()
+        super(CLSTM_3, self).__init__()
+        self.name = "CLSTM_3"
+
         self.cnn1 = nn.Conv1d(
             in_channels=1,
             out_channels=64,

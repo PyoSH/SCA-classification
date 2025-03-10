@@ -47,14 +47,9 @@ if __name__ == '__main__':
     data_label = datas_law[:, -1]
 
     data_audio_input = None
-    if cfg.HYPERPARAMS.MODELTYPE != 'CRNN':
+    is_HybridModel = (cfg.HYPERPARAMS.MODELTYPE[0] == 'C')
 
-        logger.info("data in - before MFCC")
-        data_featureVector = audioProcessing(data_audio, mfcc_const)
-        logger.info("data in - after MFCC")
-        data_audio_input = data_featureVector
-
-    elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
+    if is_HybridModel:
         data_audio_std = deepcopy(data_audio)
 
         # audio standardization to mean 0, variance 1
@@ -63,6 +58,11 @@ if __name__ == '__main__':
             data_audio_std[i, :] = row
 
         data_audio_input = data_audio_std
+    else:
+        logger.info("data in - before MFCC")
+        data_featureVector = audioProcessing(data_audio, mfcc_const)
+        logger.info("data in - after MFCC")
+        data_audio_input = data_featureVector
 
     # 데이터셋 분할
     X_train, X_test, y_train, y_test = train_test_split(data_audio_input, data_label, test_size=0.2, random_state=42)
@@ -73,15 +73,14 @@ if __name__ == '__main__':
     valid_dataset = None
     test_dataset = None
 
-    if cfg.HYPERPARAMS.MODELTYPE != 'CRNN':
-        train_dataset = AudioDataset(X_train, y_train, input_size=mfcc_const.n_mfcc)
-        valid_dataset = AudioDataset(X_val, y_val, input_size=mfcc_const.n_mfcc)
-        test_dataset = AudioDataset(X_test, y_test, input_size=mfcc_const.n_mfcc)
-
-    elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
+    if is_HybridModel:
         train_dataset = RawWaveformDataset(X_train, y_train)
         valid_dataset = RawWaveformDataset(X_val, y_val)
         test_dataset = RawWaveformDataset(X_test, y_test)
+    else:
+        train_dataset = AudioDataset(X_train, y_train, input_size=mfcc_const.n_mfcc)
+        valid_dataset = AudioDataset(X_val, y_val, input_size=mfcc_const.n_mfcc)
+        test_dataset = AudioDataset(X_test, y_test, input_size=mfcc_const.n_mfcc)
 
     # 데이터로더 객체 생성
     train_loader = DataLoader(train_dataset, batch_size=cfg.HYPERPARAMS.BATCH_SIZE, shuffle=True)
