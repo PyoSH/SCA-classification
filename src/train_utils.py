@@ -94,7 +94,7 @@ def eval_metrics_device(model, test_loader, classes, device):
                 y_preds = np.concatenate((y_preds, pred_np), axis=0)
 
     plot_comparison(model.name, y_trues, y_preds, classes=classes)
-    # plot_cm(model.name, y_trues, y_preds, classes=classes)
+    plot_cm(model.name, y_trues, y_preds, classes=classes)
 
     return metrics.classification_report(y_trues, y_preds, zero_division=0)
 
@@ -136,7 +136,6 @@ def plot_cm(model_name, y_true, y_pred, classes, show='True'):
     plt.ylabel('True')
 
     # plt.show()
-    # plt.show()
     prefix = os.path.join('pics', 'trains')
     file_name_str = f'CM_{model_name}.png'
     plt.savefig(os.path.join(prefix, file_name_str))
@@ -157,7 +156,7 @@ def plot_comparison(model_type, y_ts, y_ps, classes, show='True'):
     plt.subplot(2, 1, 2)
     if model_type == 'LSTM':
         plt.plot(x, y_ps ,  color='green', linestyle='-', marker='', label='LSTM predicted', linewidth=1)
-    elif model_type == 'LSTM':
+    elif model_type == 'RNN':
         plt.plot(x, y_ps, color='blue', linestyle='-', marker='', label='RNN predicted', linewidth=1)
     elif model_type == 'CRNN_3':
         plt.plot(x, y_ps, color='cyan', linestyle='-', marker='', label='CRNN predicted', linewidth=1)

@@ -57,10 +57,12 @@ if __name__ == '__main__':
         model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
                           num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
                           output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
+    elif cfg.HYPERPARAMS.MODELTYPE == 'C-RNN':
         model = CRNN_3().to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'CLSTM':
+    elif cfg.HYPERPARAMS.MODELTYPE == 'C-LSTM':
         model = CLSTM_3().to(device)
+
+    is_HybridModel = (cfg.HYPERPARAMS.MODELTYPE[0] == 'C')
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
     model.eval()
@@ -84,15 +86,15 @@ if __name__ == '__main__':
         logger.info(f'start, {raw_audio.shape}')
         start_t = time.time()
 
-        if cfg.HYPERPARAMS.MODELTYPE != 'CRNN':
+        if not is_HybridModel:
+            tensor_audio = torch.tensor(raw_audio, dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(device)
+        else:
             featureVector = get_frame_to_mfcc(raw_audio, samplingRate=mfcc_const.sr,
                                               num_cepstralCoefficient=mfcc_const.n_mfcc,
                                               hop_length=mfcc_const.hop_length, len_fft=mfcc_const.len_fft)
             logger.info('audio MFCC processed')
-            tensor_audio = torch.tensor(featureVector[:, :, :mfcc_const.n_mfcc], dtype=torch.float32).to(device)  # 입력 텐서 주의!!!!
-
-        elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
-            tensor_audio = torch.tensor(raw_audio, dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(device)
+            tensor_audio = torch.tensor(featureVector[:, :, :mfcc_const.n_mfcc], dtype=torch.float32).to(
+                device)  # 입력 텐서 주의!!!!
 
         logger.info(f'predict start, {raw_audio.shape}')
         with torch.no_grad():

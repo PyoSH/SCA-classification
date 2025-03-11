@@ -18,7 +18,7 @@ parser.add_argument('--cfg',
 
 args = parser.parse_args()
 update_config(cfg, args)
-dataSet_path = cfg.PATH.TRAIN_PATH # !!!!!TRAIN_PATH or TEST_PATH
+dataSet_path = cfg.PATH.TEST_PATH # !!!!!TRAIN_PATH or TEST_PATH
 logger.info("Running dataset_bringup ...")
 logger.info(f'DATA path: {dataSet_path}')
 
@@ -28,7 +28,7 @@ len_frame_time = cfg.HYPERPARAMS.LEN_FRAME * 0.001 # 100 ms = 0.1 s
 len_frame_sample = int(len_frame_time * sample_rate) # sample num = 2205, 100ms frame = 4410 samples.
 
 # dataPath = os.path.join('data', 'inspection' ,'unknown') # or 'train' !!!!!!
-dataPath = os.path.join('data', 'train_uw' 'class4') # or 'train' !!!!!!
+dataPath = os.path.join('data', 'test_uw', 'class4') # or 'train' !!!!!!
 audioPathList = os.path.join(dataPath, 'audio')
 labelPathList = os.path.join(dataPath, 'label')
 
@@ -54,7 +54,6 @@ if __name__ == '__main__':
             audio_processed[idx, :] = singleFrame[:]
 
         label_raw = pd.read_csv(tempLabelPath, header=None, sep='\t')
-        label_processed = None
         label_processed = labelProcessing(label_raw, num_frame, label_class=label_class, sampleRate=sample_rate, len_frame=len_frame_sample)
 
         temp2dMat = np.zeros((num_frame, len_frame_sample +1), dtype=np.float32) #공간 낭비 아깝긴 한데... 생각한건 이거다.

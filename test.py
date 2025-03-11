@@ -55,9 +55,9 @@ if __name__ == '__main__':
         model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
                           num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
                           output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'CRNN':
+    elif cfg.HYPERPARAMS.MODELTYPE == 'C-RNN':
         model = CRNN_3().to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'CLSTM':
+    elif cfg.HYPERPARAMS.MODELTYPE == 'C-LSTM':
         model = CLSTM_3().to(device)
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
