@@ -28,7 +28,7 @@ class RNNModel(nn.Module):
         return out
 
 class CRNN_base(nn.Module):
-    def __init__(self, input_dim=101, hidden_dim=128, num_layers=2, output_dim=3):
+    def __init__(self, output_dim, input_dim=101, hidden_dim=128, num_layers=2):
         super(CRNN_base, self).__init__()
         self.cnn1 = nn.Conv1d(
             in_channels=1,
@@ -81,7 +81,7 @@ class CRNN_base(nn.Module):
         return out
 
 class CRNN_3(nn.Module):
-    def __init__(self, input_dim=128, hidden_dim=128, num_layers=2, output_dim=3):
+    def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
         super(CRNN_3, self).__init__()
         self.name = "CRNN_3"
 
@@ -158,7 +158,7 @@ class CRNN_3(nn.Module):
         return out
 
 class CLSTM_3(nn.Module):
-    def __init__(self, input_dim=128, hidden_dim=128, num_layers=2, output_dim=3):
+    def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
         super(CLSTM_3, self).__init__()
         self.name = "CLSTM_3"
 

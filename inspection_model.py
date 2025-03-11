@@ -41,9 +41,9 @@ if __name__ == '__main__':
 
     # (1) 학습된 모델의 CNN layer 에서 가중치 추출
     if cfg.HYPERPARAMS.MODELTYPE == 'C-LSTM':
-        model = CLSTM_3().to(device)
+        model = CLSTM_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
     elif cfg.HYPERPARAMS.MODELTYPE == 'C-RNN':
-        model = CRNN_3().to(device)
+        model = CRNN_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
     model.eval()

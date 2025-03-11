@@ -58,9 +58,9 @@ if __name__ == '__main__':
                           num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
                           output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
     elif cfg.HYPERPARAMS.MODELTYPE == 'C-RNN':
-        model = CRNN_3().to(device)
+        model = CRNN_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
     elif cfg.HYPERPARAMS.MODELTYPE == 'C-LSTM':
-        model = CLSTM_3().to(device)
+        model = CLSTM_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
 
     is_HybridModel = (cfg.HYPERPARAMS.MODELTYPE[0] == 'C')
 
