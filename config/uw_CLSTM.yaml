@@ -1,18 +1,18 @@
 # parameters for train model
 
 PATH:
-  TRAIN_PATH: ./data/dataset/uw_train_2nd.npy
-  TEST_PATH: ./data/dataset/uw_test.npy
-  MODEL_PATH: ./results/CLSTM_3_uw_400.pth #this model will be made in path
+  TRAIN_PATH: ./data/dataset/uw_train_class4.npy
+  TEST_PATH: ./data/dataset/uw_test_class4.npy
+  MODEL_PATH: ./results/CLSTM3_uw_C4_400.pth #this model will be made in path
 HYPERPARAMS:
-  MODELTYPE: 'CLSTM'
+  MODELTYPE: 'C-LSTM'
   HIDDEN_SIZE: 128
   NUM_LAYERS: 2
   NUM_CLASSES: 3
   BATCH_SIZE: 128
   NUM_EPOCHS: 400
   LEARNING_RATE: 0.001
-  LABEL_CLASS: ['unknown','idling', 'cutting']
+  LABEL_CLASS: ['unknown', 'standby', 'idling', 'cutting']
   LEN_FRAME: 150 # [ms]
 FEATUREPARAMS:
   SAMPLING_RATE: 44100
