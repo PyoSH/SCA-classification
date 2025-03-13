@@ -2,8 +2,8 @@
 
 PATH:
   TRAIN_PATH: ./data/dataset/uw_train_class4.npy
-  TEST_PATH: ./data/dataset/uw_test_class4.npy
-  MODEL_PATH: ./results/CLSTM3_uw_C4_400.pth #this model will be made in path
+  TEST_PATH: ./data/dataset/uw_standby.npy
+  MODEL_PATH: ./results/CLSTM3_uw_C4.pth #this model will be made in path
 HYPERPARAMS:
   MODELTYPE: 'C-LSTM'
   HIDDEN_SIZE: 128

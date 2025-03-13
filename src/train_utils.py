@@ -81,7 +81,7 @@ def eval_metrics_device(model, test_loader, classes, device):
             # logger.info("model in")
             labels = labels.to(device)
             outputs = model(inputs)
-            # logger.info("model out", outputs)
+            # logger.info(f"model out {outputs.data}")
             _, predicted = torch.max(outputs.data, 1)
             labels_np = labels.cpu().numpy()
             pred_np = predicted.cpu().numpy()
