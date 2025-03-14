@@ -87,8 +87,10 @@ CRNN 모델의 합성곱 필터 학습이 어떻게 되었는지 확인하는 �
 어디에 둬야 할지 모르겠으니 여기에 둔다
 2025_02_26
 '''
-def viz_filter_map(model, section, idx_ch, sampling_rate):
-    layer = getattr(model, section)
+def viz_filter_map(model, section, layer_type, idx_ch, sampling_rate):
+    cnn_block =  getattr(model.feature_extractor, section)
+    layer = getattr(cnn_block, layer_type)
+
     filters = layer.weight.data.cpu().numpy()  # CPU로 이동
     out_channels, in_channels, ksize = filters.shape
 
@@ -145,7 +147,7 @@ def viz_filter_map(model, section, idx_ch, sampling_rate):
 
     return sorted_idx
 
-def viz_feature_map(model, section, ch_idx, sorted_idx, data_audio_std, device, working_state):
+def viz_feature_map(model, section, layer_type, ch_idx, sorted_idx, data_audio_std, device, working_state):
     activations = {}
 
     def get_activation(name):
@@ -154,7 +156,8 @@ def viz_feature_map(model, section, ch_idx, sorted_idx, data_audio_std, device, 
 
         return hook
 
-    layer = getattr(model, section)
+    cnn_block = getattr(model.feature_extractor, section)
+    layer = getattr(cnn_block, layer_type)
     layer.register_forward_hook(get_activation(section))
 
     input_audio = torch.tensor(data_audio_std[:, :], dtype=torch.float32).unsqueeze(1).to(device)
@@ -185,9 +188,9 @@ def viz_feature_map(model, section, ch_idx, sorted_idx, data_audio_std, device, 
     # plt.show()
 
     ch_str = None
-    if "cnn" in section:
+    if layer_type == "cnn":
         prefix = os.path.join('pics', 'CNN', 'feature', 'ordered', working_state)
-    elif "pool" in section:
+    elif layer_type == "pool":
         prefix = os.path.join('pics', 'pooling','ordered',working_state)
 
     if ch_idx == -1: ch_str = "last"
