@@ -59,6 +59,8 @@ if __name__ == '__main__':
         model = CRNN_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
     elif cfg.HYPERPARAMS.MODELTYPE == 'C-LSTM':
         model = CLSTM_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif cfg.HYPERPARAMS.MODELTYPE == 'C-test':
+        model = C_test(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
     # model.eval()

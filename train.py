@@ -101,6 +101,8 @@ if __name__ == '__main__':
         model = CRNN_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
     elif cfg.HYPERPARAMS.MODELTYPE == 'C-LSTM':
         model = CLSTM_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif cfg.HYPERPARAMS.MODELTYPE == 'C-test':
+        model = C_test(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
 
     # 손실 함수 및 최적화 알고리즘 정의
     criterion = nn.CrossEntropyLoss()
