@@ -1,12 +1,13 @@
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.nn.init as init
 
 class LSTMModel(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
         super(LSTMModel, self).__init__()
         self.name = "LSTM"
 
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True, dropout=0.1)
         self.fc = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
@@ -19,7 +20,7 @@ class RNNModel(nn.Module):
         super(RNNModel, self).__init__()
         self.name = "RNN"
 
-        self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True, dropout=0.1)
         self.fc = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
@@ -39,6 +40,7 @@ class CNNBlock(nn.Module):
         )
         self.bn = nn.BatchNorm1d(out_ch)
         self.pool = nn.MaxPool1d(kernel_size=4, stride=4)
+        self._initialize_weights()
 
     def forward(self, x):
         # x.shape = [batch_size, in_channels, time] = [batch_size, 1, 6615]
@@ -47,14 +49,23 @@ class CNNBlock(nn.Module):
         x = self.cnn(x)
         # print(f"CNN : [{x.shape}]")
 
+        x = F.relu(x)
+
         x = self.bn(x)
         # print(f"batch norm: [{x.shape}]")
 
-        x = F.relu(x)
         x = self.pool(x)
         # print(f"max pooling size: [{x.shape}]")
 
         return x
+
+    def _initialize_weights(self):
+        """He initialize implement"""
+        # init.xavier_uniform_(self.cnn.weight)
+        init.kaiming_uniform_(self.cnn.weight, nonlinearity='relu')
+
+        if self.cnn.bias is not None:
+            init.zeros_(self.cnn.bias)
 
 class CNNFeatureExtractor(nn.Module):
     def __init__(self):
@@ -79,7 +90,7 @@ class CNNFeatureExtractor(nn.Module):
 class CNNFeatureExtractor_test(nn.Module):
     def __init__(self):
         super(CNNFeatureExtractor_test, self).__init__()
-        self.cnnBlock1 = CNNBlock(in_ch=1, out_ch=64, kernel_size=20, stride=4, pad=0)
+        self.cnnBlock1 = CNNBlock(in_ch=1, out_ch=64, kernel_size=80, stride=4, pad=0)
         self.cnnBlock2 = CNNBlock(in_ch=64, out_ch=64, kernel_size=3, stride=1, pad=0)
         self.cnnBlock3 = CNNBlock(in_ch=64, out_ch=128, kernel_size=3, stride=1, pad=0)
 
@@ -112,7 +123,7 @@ class CLSTM_3(nn.Module):
         self.feature_extractor = CNNFeatureExtractor()
 
         # LSTM
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True, dropout=0.1)
 
         # 최종 완전연결 레이어
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -153,7 +164,7 @@ class C_test(nn.Module):
         self.feature_extractor = CNNFeatureExtractor_test()
 
         # LSTM
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True, dropout=0.1)
 
         # 최종 완전연결 레이어
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -186,7 +197,7 @@ class CRNN_3(nn.Module):
         # 별도의 CNN feature 추출기
         self.feature_extractor = CNNFeatureExtractor()
 
-        self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True)  # 여기의 input_dim은 pool2에서 나오는 크기여야 함!!!
+        self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True, dropout=0.1)  # 여기의 input_dim은 pool2에서 나오는 크기여야 함!!!
         self.fc = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):

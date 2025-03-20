@@ -38,7 +38,7 @@ logger.info(f'MODEL path: {cfg.PATH.MODEL_PATH}')
 if __name__ == '__main__':
 
     def extract_label(path):
-        return path.split("/")[-1].split("_")[1].split(".")[0]
+        return path.split("/")[-1].rsplit("_", 1)[-1].split(".")[0]
 
     working_state = extract_label(cfg.PATH.TEST_PATH)
 
