@@ -62,7 +62,7 @@ class CNNBlock(nn.Module):
     def _initialize_weights(self):
         """He initialize implement"""
         # init.xavier_uniform_(self.cnn.weight)
-        init.kaiming_uniform_(self.cnn.weight, nonlinearity='relu')
+        init.kaiming_normal_(self.cnn.weight, nonlinearity='relu')
 
         if self.cnn.bias is not None:
             init.zeros_(self.cnn.bias)
