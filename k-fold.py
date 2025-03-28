@@ -1,3 +1,5 @@
+import os.path
+
 from src.model_definition import *
 from src.train_utils import *
 from src.dataset import *
@@ -77,7 +79,7 @@ if __name__ == '__main__':
     # ✅ K-Fold Cross Validation 시작
     fold_results = []
     for fold, (train_idx, val_idx) in enumerate(kfold.split(data_audio_input, data_label)):
-        logger.info(f"\n Fold [{fold+1}/{k_folds}] 학습 시작...")
+        logger.info(f"Fold [{fold+1}/{k_folds}] 학습 시작...")
 
 
         X_train, y_train = data_audio_input[train_idx], data_label[train_idx]
@@ -88,62 +90,20 @@ if __name__ == '__main__':
 
         # ✅ 데이터로더 생성
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-        val_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)
+        test_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)
 
         # ✅ 모델 초기화 (각 Fold마다 새로 학습해야 함)
         model = C_test(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         criterion = nn.CrossEntropyLoss()
 
-        val_acc = 0.0
-
-        # ✅ 학습 및 검증 루프
-        for epoch in range(num_epochs):
-            # ✅ 훈련 과정
-            model.train()
-            train_loss = 0.0
-            for inputs, labels in train_loader:
-                inputs, labels = inputs.to(device), labels.to(device)
-
-                optimizer.zero_grad()
-                outputs = model(inputs)
-                loss = criterion(outputs, labels)
-                loss.backward()
-                optimizer.step()
-
-                train_loss += loss.item()
-
-            # ✅ 검증 과정
-            model.eval()
-            val_loss = 0.0
-            correct, total = 0, 0
-            with torch.no_grad():
-                for inputs, labels in val_loader:
-                    inputs, labels = inputs.to(device), labels.to(device)
-                    outputs = model(inputs)
-                    loss = criterion(outputs, labels)
-                    val_loss += loss.item()
-
-                    _, predicted = torch.max(outputs, 1)
-                    total += labels.size(0)
-                    correct += (predicted == labels).sum().item()
-
-            # ✅ 결과 출력 (logger 사용)
-            train_loss /= len(train_loader)
-            val_loss /= len(val_loader)
-            val_acc = correct / total
-
-            logger.info(f"Fold [{fold+1}/{k_folds}] | Epoch [{epoch+1}/{num_epochs}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f}")
-
-        # ✅ 현재 Fold의 성능 저장
-        fold_results.append(val_acc)
+        train_model_device(model=model, train_loader=train_loader, test_loader=test_loader, criterion=criterion,
+                                   optimizer=optimizer, num_epochs=cfg.HYPERPARAMS.NUM_EPOCHS, device=device)
 
         # ✅ Fold별 모델 저장 (옵션)
-        model_path = f"model_fold{fold+1}.pth"
+        model_path = f"{cfg.PATH.MODEL_PATH.removesuffix('.pth')}_fold{fold+1}.pth"
         torch.save(model.state_dict(), model_path)
         logger.info(f"Fold [{fold+1}] 모델 저장 완료: {model_path}")
 
     # ✅ 최종 평균 성능 계산
     logger.info(f"5-Fold Cross Validation 완료!")
-    logger.info(f"각 Fold 정확도: {fold_results}")
-    logger.info(f"평균 정확도: {np.mean(fold_results):.4f}")

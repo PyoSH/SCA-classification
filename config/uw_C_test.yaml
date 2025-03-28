@@ -3,23 +3,23 @@
 PATH:
   TRAIN_PATH: ./data/dataset/uw_class4_train.npy
 #  TRAIN_PATH: ./data/dataset/uw_8kHz_train.npy
-#  TEST_PATH: ./data/dataset/uw_class4_test.npy
+  TEST_PATH: ./data/dataset/uw_class4_test.npy
 #  TEST_PATH: ./data/dataset/uw_8kHz_test.npy
 #  TEST_PATH: ./data/dataset/uw_8kHz_cutting.npy
-  TEST_PATH: ./data/dataset/uw_cutting.npy
-  MODEL_PATH: ./results/C_test_RF_80_200.pth #this model will be made in path
+#  TEST_PATH: ./data/dataset/uw_cutting.npy
+  MODEL_PATH: ./results/C_test_RF_80_20.pth #this model will be made in path
 HYPERPARAMS:
   MODELTYPE: 'C-test'
   HIDDEN_SIZE: 128
   NUM_LAYERS: 2
   NUM_CLASSES: 4
   BATCH_SIZE: 128
-  NUM_EPOCHS: 200
-  LEARNING_RATE: 0.0001
+  NUM_EPOCHS: 20
+  LEARNING_RATE: 0.001
   LABEL_CLASS: ['unknown', 'standby', 'idling', 'cutting']
-  LEN_FRAME: 4000 # [ms]
+  LEN_FRAME: 150 # [ms]
 FEATUREPARAMS:
   SAMPLING_RATE: 44100
   LEN_WINDOW: 1024
   HOP_LENGTH: 256
-  CHUNK: 32000 # 50ms -> 2205, 100ms -> 4410 same as sample per frame
+  CHUNK: 6615 # 50ms -> 2205, 100ms -> 4410 same as sample per frame

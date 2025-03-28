@@ -11,6 +11,7 @@ from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 import matplotlib.pyplot as plt
 from loguru import logger
+from datetime import datetime
 
 def evaluate_model(model, test_loader):
     model.eval()
@@ -26,21 +27,25 @@ def evaluate_model(model, test_loader):
 
     return accuracy
 
-def evaluate_model_device(model, test_loader, device):
+def evaluate_model_device(model, test_loader, criterion, device):
     model.eval()
-    correct = 0
-    total = 0
+    correct, total = 0, 0
+    test_loss = 0.0
+
     with torch.no_grad():
         for inputs, labels in test_loader:
-            inputs = inputs.to(device)  # GPU로 이동
-            labels = labels.to(device)
+            inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            test_loss += loss.item()
+
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     accuracy = correct / total * 100
+    test_loss /= len(test_loader)
 
-    return accuracy
+    return accuracy, test_loss
 
 def eval_metrics(model, test_loader, classes):
     y_trues = None
@@ -77,11 +82,9 @@ def eval_metrics_device(model, test_loader, classes, device):
 
     with torch.no_grad():
         for inputs, labels in test_loader:
-            inputs = inputs.to(device)  # GPU로 이동
-            # logger.info("model in")
-            labels = labels.to(device)
+            inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
-            # logger.info(f"model out {outputs.data}")
+
             _, predicted = torch.max(outputs.data, 1)
             labels_np = labels.cpu().numpy()
             pred_np = predicted.cpu().numpy()
@@ -119,8 +122,9 @@ def plot_graphs(model_name, train_losses, test_accuracies):
 
     plt.tight_layout()
     # plt.show()
+    time_now = datetime.now().strftime("%H_%M")
     prefix = os.path.join('pics', 'trains')
-    file_name_str = f'train_curve_{model_name}.png'
+    file_name_str = f'train_curve_{model_name}_{time_now}.png'
     plt.savefig(os.path.join(prefix, file_name_str))
 
 def plot_cm(model_name, y_true, y_pred, classes, show='True'):
@@ -210,17 +214,16 @@ def train_model_device(model, train_loader, test_loader, criterion, optimizer, n
     for epoch in range(num_epochs):
         model.train()  # 모델을 training 모드로 설정
 
-        idx = 0
         running_loss = 0.0
         for inputs, labels in train_loader:
-            inputs = inputs.to(device)
-            labels = labels.to(device)
+            inputs, labels = inputs.to(device), labels.to(device)
 
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
+
             running_loss += loss.item()
 
         # 현재 epoch의 평균 training loss 기록
@@ -228,9 +231,9 @@ def train_model_device(model, train_loader, test_loader, criterion, optimizer, n
         train_losses.append(epoch_loss)
 
         # 현재 epoch의 test accuracy 계산 및 기록
-        test_accuracy = evaluate_model_device(model, test_loader, device)
+        test_accuracy, test_loss = evaluate_model_device(model, test_loader, criterion, device)
         test_accuracies.append(test_accuracy)
-        logger.info(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss:.4f}, Test Accuracy: {test_accuracy:.2f}%')
+        logger.info(f'Epoch [{epoch + 1}/{num_epochs}], Train Loss: {epoch_loss:.4f}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}%')
 
     # training loss 및 test accuracy 그래프 그리기
     plot_graphs(model.name, train_losses, test_accuracies)
