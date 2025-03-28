@@ -6,6 +6,16 @@ from sklearn.model_selection import KFold
 from config import cfg, update_config
 import argparse
 from loguru import logger
+import random
+
+def set_seed(seed=42):
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True  # 연산 결정적 수행
+        torch.backends.cudnn.benchmark = False     # 성능 대신 재현성
 
 # 디바이스 설정: Apple Silicon의 MPS, CUDA, 또는 CPU
 device = (
@@ -47,6 +57,8 @@ learning_rate = 0.0001  # 기존보다 낮춘 학습률
 k_folds = 5  # K-Fold 개수
 
 if __name__ == '__main__':
+    set_seed(42)
+
     # ✅ 데이터셋 로드
     datas_law = np.load(cfg.PATH.TRAIN_PATH)
     data_audio = datas_law[:, 0:-1]  # 오디오 피처 그대로임, 이거 MFCC로 특징 벡터 뽑아야 함
@@ -64,8 +76,9 @@ if __name__ == '__main__':
 
     # ✅ K-Fold Cross Validation 시작
     fold_results = []
-    for fold, (train_idx, val_idx) in enumerate(kfold.split(np.arange(data_audio_input))):
-        logger.info(f"\n📌 Fold [{fold+1}/{k_folds}] 학습 시작...")
+    for fold, (train_idx, val_idx) in enumerate(kfold.split(data_audio_input, data_label)):
+        logger.info(f"\n Fold [{fold+1}/{k_folds}] 학습 시작...")
+
 
         X_train, y_train = data_audio_input[train_idx], data_label[train_idx]
         X_val, y_val = data_audio_input[val_idx], data_label[val_idx]
@@ -81,6 +94,8 @@ if __name__ == '__main__':
         model = C_test(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         criterion = nn.CrossEntropyLoss()
+
+        val_acc = 0.0
 
         # ✅ 학습 및 검증 루프
         for epoch in range(num_epochs):
@@ -118,7 +133,7 @@ if __name__ == '__main__':
             val_loss /= len(val_loader)
             val_acc = correct / total
 
-            logger.info(f"📌 Fold [{fold+1}/{k_folds}] | Epoch [{epoch+1}/{num_epochs}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f}")
+            logger.info(f"Fold [{fold+1}/{k_folds}] | Epoch [{epoch+1}/{num_epochs}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f}")
 
         # ✅ 현재 Fold의 성능 저장
         fold_results.append(val_acc)
@@ -126,9 +141,9 @@ if __name__ == '__main__':
         # ✅ Fold별 모델 저장 (옵션)
         model_path = f"model_fold{fold+1}.pth"
         torch.save(model.state_dict(), model_path)
-        logger.info(f"✅ Fold [{fold+1}] 모델 저장 완료: {model_path}")
+        logger.info(f"Fold [{fold+1}] 모델 저장 완료: {model_path}")
 
     # ✅ 최종 평균 성능 계산
-    logger.info(f"\n✅ 5-Fold Cross Validation 완료!")
-    logger.info(f"✅ 각 Fold 정확도: {fold_results}")
-    logger.info(f"✅ 평균 정확도: {np.mean(fold_results):.4f}")
+    logger.info(f"5-Fold Cross Validation 완료!")
+    logger.info(f"각 Fold 정확도: {fold_results}")
+    logger.info(f"평균 정확도: {np.mean(fold_results):.4f}")

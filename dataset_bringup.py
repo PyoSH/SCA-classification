@@ -29,8 +29,8 @@ sample_rate = cfg.FEATUREPARAMS.SAMPLING_RATE
 len_frame_time = cfg.HYPERPARAMS.LEN_FRAME * 0.001 # 100 ms = 0.1 s
 len_frame_sample = int(len_frame_time * sample_rate) # sample num = 2205, 100ms frame = 4410 samples.
 
-dataPath = os.path.join('data', 'inspection' ,'8kHz_cutting') # or 'train' !!!!!!
-# dataPath = os.path.join('data', 'test_uw', 'class4') # or 'train' !!!!!!
+# dataPath = os.path.join('data', 'inspection' ,'8kHz_cutting') # or 'train' !!!!!!
+dataPath = os.path.join('data', 'test_uw', 'class4') # or 'train' !!!!!!
 audioPathList = os.path.join(dataPath, 'audio')
 labelPathList = os.path.join(dataPath, 'label')
 

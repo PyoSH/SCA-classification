@@ -94,6 +94,19 @@ def audioProcessing(data, mfcc_const):
 
     return data_featureVector
 
+def audioStandardization(data):
+    data_standardization = None
+    a = range(data.shape[0])
+    for idx in tqdm(a, desc="audio standardization progressing"):
+        temp_data = data[idx, :]
+        temp_std = get_frame_standardization(temp_data)
+        if idx == 0:
+            data_standardization = copy.deepcopy(temp_std)
+        else:
+            data_standardization = np.append(data_standardization, temp_std, axis=0)
+
+    return data_standardization
+
 def zeropad1d(A, length):
     retVal = np.zeros(length)
     retVal[:len(A)] = A

@@ -82,6 +82,18 @@ def get_frame_to_mfcc(data, samplingRate, num_cepstralCoefficient, hop_length, l
     featureVector = featureVector[np.newaxis, :, :]
     return featureVector
 
+def get_frame_standardization(data):
+    # 16-bit 정수를 부동 소수점으로 변환
+    frame_float = data.astype(np.float32) / 32767.0
+    frame_norm = None
+    # 1-2 프레임 대한 표준화
+    if np.max(frame_float) == 0:
+        frame_norm = frame_float
+    else:
+        frame_norm = (frame_float - np.mean(frame_float)) / np.std(frame_float)
+
+    return frame_norm
+
 '''
 CRNN 모델의 합성곱 필터 학습이 어떻게 되었는지 확인하는 함수 
 어디에 둬야 할지 모르겠으니 여기에 둔다
