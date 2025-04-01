@@ -1,9 +1,7 @@
-from pyexpat import features
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 import numpy as np
 from torch.utils.data import DataLoader
-
 from src.dataset import RawWaveformDataset
 from src.model_definition import *
 import torch
@@ -32,11 +30,10 @@ def extract_features(model, dataloader, device):
 
     return np.vstack(features), np.hstack(labels)
 
-def plot_tsne_with_index(features, labels, sample_indices, class_names=None, perplexity=30, title='t-SNE Visualization'):
+def plot_tsne(features, labels, class_names=None, perplexity=30, title='t-SNE Visualization'):
     """
-    features       : (N, D) numpy array of high-dim embeddings
-    labels         : (N,) array of class labels (0, 1, 2, ...)
-    sample_indices : (N,) array of index 번호 (같은 샘플 내에서 나온 벡터 구분용)
+    features : (N, D) numpy array of high-dim embeddings
+    labels   : (N,) array of class labels (0, 1, 2, ...)
     """
     tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42)
     reduced = tsne.fit_transform(features)
@@ -44,11 +41,9 @@ def plot_tsne_with_index(features, labels, sample_indices, class_names=None, per
     plt.figure(figsize=(12, 10))
     for label in np.unique(labels):
         idx = labels == label
-        plt.scatter(reduced[idx, 0], reduced[idx, 1], label=class_names[label] if class_names else f'Class {label}', alpha=0.6)
-
-        # 인덱스 번호 텍스트 표시
-        for i in np.where(idx)[0]:
-            plt.text(reduced[i, 0], reduced[i, 1], str(sample_indices[i]), fontsize=8, alpha=0.7)
+        plt.scatter(reduced[idx, 0], reduced[idx, 1],
+                    label=class_names[int(label)] if class_names else f'Class {label}',
+                    alpha=0.6)
 
     plt.title(title)
     plt.legend()
@@ -110,4 +105,4 @@ if __name__ == '__main__':
 
     features, labels = extract_features(model=model, dataloader=data_loader, device=device)
     
-    plot_tsne_with_index(features, data_label, )
+    plot_tsne(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
