@@ -3,7 +3,13 @@ import librosa
 import numpy as np
 import torch
 from sklearn.preprocessing import StandardScaler
+from sklearn.manifold import TSNE
+import seaborn as sns
 import matplotlib.pyplot as plt
+
+
+import plotly.express as px
+import pandas as pd
 
 class MFCC_params():
     def __init__(self, samplingRate, num_CepstralCs, hop_length, len_window):
@@ -211,3 +217,155 @@ def viz_feature_map(model, section, layer_type, ch_idx, sorted_idx, data_audio_s
     file_name_str = f'{section}_{ch_str}.png'
     plt.savefig(os.path.join(prefix, file_name_str))
 
+def extract_feature_embeddings(model, dataloader, device):
+    model.eval()
+    features = []
+    labels = []
+    indices = []
+
+    with torch.no_grad():
+        for idx, (inputs, targets) in enumerate(dataloader):
+            inputs = inputs.to(device)
+            targets = targets.to(device)
+
+            # CNN 최종 출력 임베딩
+            # x = model.feature_extractor(inputs)
+
+            # 시각화를 위해 (batch, channels, time)를 (batch, -1)로 평탄화
+            # embedding = x.view(x.size(0), -1).cpu().numpy()
+
+            # CNN → LSTM → 최종 출력이 아닌, LSTM의 임베딩 출력까지 사용
+            x = model.feature_extractor(inputs)
+            x = x.transpose(1, 2)  # [batch, time, channels]
+            lstm_out, _ = model.lstm(x)
+
+            # 마지막 타임스텝의 출력 벡터 사용
+            embedding = lstm_out[:, -1, :].cpu().numpy()
+
+            features.append(embedding)
+            labels.append(targets.cpu().numpy())
+            indices.extend([idx] * embedding.shape[0])
+
+    return np.vstack(features), np.hstack(labels), np.array(indices)
+
+def plot_tsne(features, labels, class_names=None, perplexity=30, title='t-SNE Visualization'):
+    """
+    features : (N, D) numpy array of high-dim embeddings
+    labels   : (N,) array of class labels (0, 1, 2, ...)
+    """
+    tsne = TSNE(n_components=3, perplexity=perplexity, random_state=42)
+    reduced = tsne.fit_transform(features)
+
+    plt.figure(figsize=(12, 10))
+    for label in np.unique(labels):
+        idx = labels == label
+        plt.scatter(reduced[idx, 0], reduced[idx, 1],
+                    label=class_names[int(label)] if class_names else f'Class {label}',
+                    alpha=0.6)
+
+    plt.title(title)
+    plt.legend()
+    plt.grid(True)
+    plt.xlabel("TSNE 1")
+    plt.ylabel("TSNE 2")
+    plt.tight_layout()
+    plt.show()
+
+def plot_tsne_3d(features, labels, class_names=None, perplexity=30, title='t-SNE 3D Visualization'):
+    """
+    features : (N, D) high-dim embeddings
+    labels   : (N,) class labels (0, 1, 2, ...)
+    """
+    tsne = TSNE(n_components=3, perplexity=perplexity, random_state=42)
+    reduced = tsne.fit_transform(features)
+
+    fig = plt.figure(figsize=(12, 10))
+    ax = fig.add_subplot(111, projection='3d')
+
+    for label in np.unique(labels):
+        idx = labels == label
+        ax.scatter(reduced[idx, 0], reduced[idx, 1], reduced[idx, 2],
+                   label=class_names[int(label)] if class_names else f'Class {int(label)}',
+                   alpha=0.6)
+
+    ax.set_title(title)
+    ax.set_xlabel("TSNE 1")
+    ax.set_ylabel("TSNE 2")
+    ax.set_zlabel("TSNE 3")
+    ax.legend()
+    plt.tight_layout()
+    plt.show()
+
+def plot_tsne_interactive(features, labels, indices, class_names=None, perplexity=30, title='t-SNE Interactive'):
+    # 차원 축소
+    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42)
+    reduced = tsne.fit_transform(features)
+
+    # 데이터프레임 구성
+    df = pd.DataFrame({
+        "TSNE1": reduced[:, 0],
+        "TSNE2": reduced[:, 1],
+        "Label": [class_names[int(l)] if class_names else str(int(l)) for l in labels],
+        "Index": indices
+    })
+
+    # Plotly 시각화
+    fig = px.scatter(
+        df,
+        x="TSNE1",
+        y="TSNE2",
+        color="Label",
+        hover_data=["Index"],
+        title=title,
+        width=1000,
+        height=800
+    )
+
+    fig.update_traces(marker=dict(size=6, opacity=0.8))
+    fig.show()
+
+def compute_gaussian_similarity_matrix(features, sigma=1.0):
+    """
+    features: (N, D) 형태의 numpy array
+    sigma: 가우시안 커널 폭 (값이 작을수록 민감해짐)
+    """
+    N = features.shape[0]
+    sim_matrix = np.zeros((N, N))
+
+    for i in range(N):
+        for j in range(N):
+            diff = features[i] - features[j]
+            dist_sq = np.dot(diff, diff)
+            sim_matrix[i, j] = np.exp(-dist_sq / (2 * sigma ** 2))
+
+    return sim_matrix
+def plot_similarity_matrix(sim_matrix, labels=None, title="Gaussian Similarity Matrix"):
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(sim_matrix, cmap='viridis', xticklabels=labels, yticklabels=labels)
+    plt.title(title)
+    plt.xlabel("Sample Index")
+    plt.ylabel("Sample Index")
+    plt.tight_layout()
+    plt.show()
+def plot_similarity_matrix_with_class_colors(sim_matrix, labels, class_names=None, title="Gaussian Similarity Matrix"):
+    plt.figure(figsize=(10, 8))
+
+    # 라벨 → 클래스 이름 (선택)
+    if class_names:
+        label_names = [class_names[int(l)] for l in labels]
+    else:
+        label_names = [str(int(l)) for l in labels]
+
+    # 클래스별 색 지정
+    unique_classes = sorted(set(label_names))
+    palette = sns.color_palette("husl", len(unique_classes))
+    class_color_map = {cls: palette[i] for i, cls in enumerate(unique_classes)}
+    row_colors = [class_color_map[label] for label in label_names]
+
+    # DataFrame으로 변환
+    df = pd.DataFrame(sim_matrix)
+
+    sns.clustermap(df, row_colors=row_colors, col_colors=row_colors, cmap="viridis", xticklabels=False,
+                   yticklabels=False)
+    plt.suptitle(title)
+    plt.show()

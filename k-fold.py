@@ -77,7 +77,11 @@ if __name__ == '__main__':
     kfold = KFold(n_splits=k_folds, shuffle=True, random_state=42)
 
     # ✅ K-Fold Cross Validation 시작
-    fold_results = []
+    all_train_losses = []
+    all_test_losses = []
+    all_test_accs = []
+    model = None
+
     for fold, (train_idx, val_idx) in enumerate(kfold.split(data_audio_input, data_label)):
         logger.info(f"Fold [{fold+1}/{k_folds}] 학습 시작...")
 
@@ -97,8 +101,15 @@ if __name__ == '__main__':
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         criterion = nn.CrossEntropyLoss()
 
-        train_model_device(model=model, train_loader=train_loader, test_loader=test_loader, criterion=criterion,
-                                   optimizer=optimizer, num_epochs=cfg.HYPERPARAMS.NUM_EPOCHS, device=device)
+        train_loss, test_loss, test_acc = train_model_device(
+            model=model, train_loader=train_loader, test_loader=test_loader, criterion=criterion,
+            optimizer=optimizer, num_epochs=cfg.HYPERPARAMS.NUM_EPOCHS, device=device)
+
+        all_train_losses.append(train_loss)
+        all_test_losses.append(test_loss)
+        all_test_accs.append(test_acc)
+
+        # print(eval_metrics_device(model, test_loader, cfg.HYPERPARAMS.LABEL_CLASS, device))
 
         # ✅ Fold별 모델 저장 (옵션)
         model_path = f"{cfg.PATH.MODEL_PATH.removesuffix('.pth')}_fold{fold+1}.pth"
@@ -106,4 +117,5 @@ if __name__ == '__main__':
         logger.info(f"Fold [{fold+1}] 모델 저장 완료: {model_path}")
 
     # ✅ 최종 평균 성능 계산
+    plot_kfold_curves(model.name, all_train_losses, all_test_losses, all_test_accs)
     logger.info(f"5-Fold Cross Validation 완료!")

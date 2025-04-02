@@ -209,6 +209,7 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, num_epoc
 
 def train_model_device(model, train_loader, test_loader, criterion, optimizer, num_epochs, device):
     train_losses = []  # 각 epoch의 training loss 기록
+    test_losses = []
     test_accuracies = []  # 각 epoch의 test accuracy 기록
 
     for epoch in range(num_epochs):
@@ -232,8 +233,49 @@ def train_model_device(model, train_loader, test_loader, criterion, optimizer, n
 
         # 현재 epoch의 test accuracy 계산 및 기록
         test_accuracy, test_loss = evaluate_model_device(model, test_loader, criterion, device)
+        test_losses.append(test_loss)
         test_accuracies.append(test_accuracy)
+
         logger.info(f'Epoch [{epoch + 1}/{num_epochs}], Train Loss: {epoch_loss:.4f}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}%')
 
     # training loss 및 test accuracy 그래프 그리기
-    plot_graphs(model.name, train_losses, test_accuracies)
+    # plot_graphs(model.name, train_losses, test_accuracies)
+
+    return train_losses, test_losses, test_accuracies
+
+def plot_kfold_curves(model_name, all_train_losses, all_test_losses, all_test_accuracies):
+    epochs = len(all_train_losses[0])
+    x = range(1, epochs + 1)
+
+    plt.figure(figsize=(15, 6))
+
+    plt.subplot(1, 3, 1)
+    for i, fold_loss in enumerate(all_train_losses):
+        fold_loss = np.squeeze(fold_loss)  # (1, N) → (N,)
+        plt.plot(x, fold_loss, label=f'Fold {i + 1}')
+    plt.title('Train Loss per Fold')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+
+    plt.subplot(1, 3, 2)
+    for i, fold_loss in enumerate(all_test_losses):
+        plt.plot(x, np.squeeze(fold_loss), label=f'Fold {i + 1}')
+    plt.title('Test Loss per Fold')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+
+    plt.subplot(1, 3, 3)
+    for i, fold_acc in enumerate(all_test_accuracies):
+        plt.plot(x, np.squeeze(fold_acc), label=f'Fold {i+1}')
+    plt.title('Test Accuracy per Fold')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend()
+
+    plt.tight_layout()
+    prefix = os.path.join('pics', 'trains')
+    file_name_str = f'kfold_summary_{model_name}.png'
+    plt.savefig(os.path.join(prefix, file_name_str))
+    plt.show()

@@ -1,4 +1,3 @@
-import numpy as np
 from torch.utils.data import DataLoader
 from src.dataset import RawWaveformDataset
 from src.model_definition import *
@@ -31,7 +30,6 @@ update_config(cfg, args)
 logger.info("Running model_inspection ...")
 logger.info(f'MODEL path: {cfg.PATH.MODEL_PATH}')
 
-
 if __name__ == '__main__':
     model = None
     # (1) 학습된 모델의 CNN layer 에서 가중치 추출
@@ -58,8 +56,13 @@ if __name__ == '__main__':
     rawDataset = RawWaveformDataset(data_audio_std, data_label)
     data_loader = DataLoader(rawDataset, batch_size=1, shuffle=False)
 
-    features, labels, indices = extract_feature_embeddings(model=model, dataloader=data_loader, device=device)
-    
-    plot_tsne(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
-    # plot_tsne_3d(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
-    # plot_tsne_interactive(features, labels, indices, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
+    sim_mat = compute_gaussian_similarity_matrix(data_audio_std, sigma=5.0)
+
+    # 클래스 기준 정렬
+    sorted_idx = np.argsort(data_label)
+    sim_matrix_sorted = sim_mat[sorted_idx][:, sorted_idx]
+    labels_sorted = data_label[sorted_idx]
+
+    # 시각화
+    # plot_similarity_matrix(sim_matrix_sorted, labels=labels_sorted, title="Raw Audio Similarity Matrix (by Class)")
+    plot_similarity_matrix_with_class_colors(sim_matrix_sorted, labels_sorted, class_names=cfg.HYPERPARAMS.LABEL_CLASS)

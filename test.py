@@ -63,7 +63,7 @@ if __name__ == '__main__':
         model = C_test(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
-    # model.eval()
+    model.eval()
 
     data_law = np.load(cfg.PATH.TEST_PATH)
     data_audio = data_law[:, 0:-1]
@@ -78,7 +78,7 @@ if __name__ == '__main__':
         # audio standardization to mean 0, variance 1
         for i, row in enumerate(data_audio):
             row_std = (row - np.mean(row)) / np.std(row)
-            data_audio_std[i, :] = row
+            data_audio_std[i, :] = row_std
 
         test_set = RawWaveformDataset(data_audio_std, data_label)
     else:

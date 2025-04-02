@@ -13,7 +13,7 @@ num_CC = 40
 len_fft = 2048
 
 # 전체 오디오 데이터에서 MFCC 추출
-filePath = os.path.join('data','audio','Testset_8_1.mp3')
+filePath = os.path.join('../data', 'audio', 'Testset_8_1.mp3')
 audio_data, _ = librosa.load(filePath, sr=samplingRate)
 audio_data = np.array(audio_data)
 

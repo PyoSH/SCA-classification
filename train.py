@@ -109,8 +109,9 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=cfg.HYPERPARAMS.LEARNING_RATE)
 
     # 모델 훈련
-    train_model_device(model=model, train_loader=train_loader, test_loader=valid_loader, criterion=criterion,
-                       optimizer=optimizer, num_epochs=cfg.HYPERPARAMS.NUM_EPOCHS, device=device)
+    train_loss, test_loss, test_acc = train_model_device(
+        model=model, train_loader=train_loader, test_loader=valid_loader, criterion=criterion,
+        optimizer=optimizer, num_epochs=cfg.HYPERPARAMS.NUM_EPOCHS, device=device)
 
     # 모델 평가
     logger.info(f"X_train shape: {X_train.shape}")

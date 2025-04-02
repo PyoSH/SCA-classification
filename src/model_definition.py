@@ -106,6 +106,32 @@ class CNNFeatureExtractor_test(nn.Module):
         x = self.cnnBlock3(x)
         return x
 
+class CNNFeatureExtractor_CRNN8(nn.Module):
+    def __init__(self):
+        super(CNNFeatureExtractor_CRNN8, self).__init__()
+        self.block1 = CNNBlock(in_ch=1, out_ch=64, kernel_size=80, stride=4, pad=0)  # C(64, 80/4)
+        self.block2 = CNNBlock(in_ch=64, out_ch=64, kernel_size=3, stride=1, pad=1)  # C(64, 3)
+        self.block3 = nn.Sequential(
+            CNNBlock(in_ch=64, out_ch=128, kernel_size=3, stride=1, pad=1),
+            CNNBlock(in_ch=128, out_ch=128, kernel_size=3, stride=1, pad=1),
+            CNNBlock(in_ch=128, out_ch=128, kernel_size=3, stride=1, pad=1),
+        )
+        self.block4 = nn.Sequential(
+            CNNBlock(in_ch=128, out_ch=256, kernel_size=3, stride=1, pad=1),
+            CNNBlock(in_ch=256, out_ch=256, kernel_size=3, stride=1, pad=1),
+        )
+        self.block5 = nn.Sequential(
+            CNNBlock(in_ch=256, out_ch=512, kernel_size=3, stride=1, pad=1),
+            CNNBlock(in_ch=512, out_ch=512, kernel_size=3, stride=1, pad=1),
+        )
+
+    def forward(self, x):
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+        x = self.block5(x)
+        return x
 
 class CLSTM_3(nn.Module):
     def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
@@ -188,6 +214,21 @@ class C_test(nn.Module):
         out = self.fc(x)
 
         return out
+
+class C_CRNN8(nn.Module):
+    def __init__(self, output_dim, hidden_dim=128, num_layers=1):
+        super(C_CRNN8, self).__init__()
+        self.name = "C_CRNN8"
+        self.feature_extractor = CNNFeatureExtractor_CRNN8()
+        self.lstm = nn.LSTM(input_size=512, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, dropout=0.1)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+        x = self.feature_extractor(x)       # [B, 512, T]
+        x = x.transpose(1, 2)               # [B, T, 512]
+        lstm_out, _ = self.lstm(x)          # [B, T, H]
+        x = lstm_out[:, -1, :]              # [B, H]
+        return self.fc(x)
 
 class CRNN_3(nn.Module):
     def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
