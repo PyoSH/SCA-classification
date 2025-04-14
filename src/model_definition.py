@@ -90,7 +90,7 @@ class CNNFeatureExtractor(nn.Module):
 class CNNFeatureExtractor_test(nn.Module):
     def __init__(self):
         super(CNNFeatureExtractor_test, self).__init__()
-        self.cnnBlock1 = CNNBlock(in_ch=1, out_ch=64, kernel_size=80, stride=4, pad=0)
+        self.cnnBlock1 = CNNBlock(in_ch=1, out_ch=64, kernel_size=160, stride=4, pad=0)
         self.cnnBlock2 = CNNBlock(in_ch=64, out_ch=64, kernel_size=3, stride=1, pad=0)
         self.cnnBlock3 = CNNBlock(in_ch=64, out_ch=128, kernel_size=3, stride=1, pad=0)
 

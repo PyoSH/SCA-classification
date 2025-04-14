@@ -60,6 +60,6 @@ if __name__ == '__main__':
 
     features, labels, indices = extract_feature_embeddings(model=model, dataloader=data_loader, device=device)
     
-    plot_tsne(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
-    # plot_tsne_3d(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
+    # plot_tsne(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
+    plot_tsne_3d(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
     # plot_tsne_interactive(features, labels, indices, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
