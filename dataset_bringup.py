@@ -20,8 +20,8 @@ parser.add_argument('--cfg',
 
 args = parser.parse_args()
 update_config(cfg, args)
-# dataSet_path = cfg.PATH.TEST_PATH # !!!!!TRAIN_PATH or TEST_PATH
-dataSet_path = cfg.PATH.TRAIN_PATH # !!!!!TRAIN_PATH or TEST_PATH
+# dataSet_path = cfg.PATH.TRAIN_PATH # !!!!!TRAIN_PATH or TEST_PATH
+dataSet_path = cfg.PATH.TEST_PATH # !!!!!TRAIN_PATH or TEST_PATH
 logger.info("Running dataset_bringup ...")
 logger.info(f'DATA path: {dataSet_path}')
 
@@ -30,9 +30,9 @@ sample_rate = cfg.FEATUREPARAMS.SAMPLING_RATE
 len_frame_time = cfg.HYPERPARAMS.LEN_FRAME * 0.001 # 100 ms = 0.1 s
 len_frame_sample = int(len_frame_time * sample_rate) # sample num = 2205, 100ms frame = 4410 samples.
 
-# dataPath = os.path.join('data', 'samples' ,'all') # or 'train' !!!!!!
-dataPath = os.path.join('data', 'train_uw', 'class4') # or 'train' !!!!!!
+# dataPath = os.path.join('data', 'train_uw', 'class4') # or 'train' !!!!!!
 # dataPath = os.path.join('data', 'test_uw', 'class4') # or 'train' !!!!!!
+dataPath = os.path.join('data', 'samples' ,'all') # or 'train' !!!!!!
 audioPathList = os.path.join(dataPath, 'audio')
 labelPathList = os.path.join(dataPath, 'label')
 
@@ -49,11 +49,11 @@ if __name__ == '__main__':
         tempLabelPath = label_filenames[item]
 
         audioData, _ = librosa.load(tempAudioPath, sr=sample_rate)
-        if isDownsampling:
-            new_sample_rate = 16000
-            audioData = librosa.resample(audioData, orig_sr=sample_rate, target_sr=new_sample_rate)
-            sample_rate = new_sample_rate
-            len_frame_sample = int(len_frame_time * sample_rate)  # sample num = 2205, 100ms frame = 4410 samples.
+        # if isDownsampling:
+        #     new_sample_rate = 32000
+        #     audioData = librosa.resample(audioData, orig_sr=sample_rate, target_sr=new_sample_rate)
+        #     sample_rate = new_sample_rate
+        #     len_frame_sample = int(len_frame_time * sample_rate)  # sample num = 2205, 100ms frame = 4410 samples.
 
         num_frame = len(audioData) // len_frame_sample
         audio_processed = np.zeros((num_frame,len_frame_sample), dtype=np.float32)

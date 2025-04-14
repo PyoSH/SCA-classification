@@ -229,13 +229,12 @@ def extract_feature_embeddings(model, dataloader, device):
             targets = targets.to(device)
 
             # CNN 최종 출력 임베딩
-            # x = model.feature_extractor(inputs)
+            x = model.feature_extractor(inputs)
 
             # 시각화를 위해 (batch, channels, time)를 (batch, -1)로 평탄화
             # embedding = x.view(x.size(0), -1).cpu().numpy()
 
             # CNN → LSTM → 최종 출력이 아닌, LSTM의 임베딩 출력까지 사용
-            x = model.feature_extractor(inputs)
             x = x.transpose(1, 2)  # [batch, time, channels]
             lstm_out, _ = model.lstm(x)
 
