@@ -21,19 +21,19 @@ PATH:
 #  TEST_PATH: ./data/dataset/samples/uw_samples_32kHz_500ms_all.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_32kHz_100ms_all.npy
 
-#  TRAIN_PATH: ./data/dataset/uw_44kHz_1sec_train.npy
+  TRAIN_PATH: ./data/dataset/uw_44kHz_1sec_train.npy
 #  TRAIN_PATH: ./data/dataset/uw_44kHz_500ms_train.npy
-  TRAIN_PATH: ./data/dataset/uw_44kHz_100ms_train.npy
+#  TRAIN_PATH: ./data/dataset/uw_44kHz_100ms_train.npy
 #  TEST_PATH: ./data/dataset/uw_44kHz_1sec_test.npy
 #  TEST_PATH: ./data/dataset/uw_44kHz_500ms_test.npy
 #  TEST_PATH: ./data/dataset/uw_44kHz_100ms_test.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_1s_all.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_500ms_all.npy
-  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_100ms_all.npy
+#  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_100ms_all.npy
 
 #  TRAIN_PATH: ./data/dataset/uw_class4_train.npy
 #  TEST_PATH: ./data/dataset/uw_class4_test.npy
-#  TEST_PATH: ./data/dataset/uw_cutting.npy
+  TEST_PATH: ./data/dataset/uw_standby.npy
 
   MODEL_PATH: ./results/C_test_44kHz_100ms_fold5.pth #this model will be made in path
 HYPERPARAMS:

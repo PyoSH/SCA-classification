@@ -78,7 +78,7 @@ if __name__ == '__main__':
             # audio standardization to mean 0, variance 1
             for i, row in enumerate(data_audio):
                 row_std = (row - np.mean(row)) / np.std(row)
-                data_audio_std[i, :] = row
+                data_audio_std[i, :] = row_std
 
             viz_feature_map(model, block_name, "pool", ch_idx, sorted_idx, data_audio_std, device, working_state)
             viz_feature_map(model, block_name, "cnn", ch_idx, sorted_idx, data_audio_std, device, working_state)

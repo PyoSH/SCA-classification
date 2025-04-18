@@ -1,9 +1,9 @@
 # parameters for train model
 
 PATH:
-  TRAIN_PATH: ./data/dataset/uw_class4_train.npy
-  TEST_PATH: ./data/dataset/uw_class4_test.npy
-  MODEL_PATH: ./results/LSTM_uw_C4_dropout.pth #this model will be made in path
+  TRAIN_PATH: ./data/dataset/uw_44kHz_100ms_train.npy
+  TEST_PATH: ./data/dataset/uw_44kHz_100ms_test.npy
+  MODEL_PATH: ./results/LSTM_uw_C4_100ms_dropout.pth #this model will be made in path
 HYPERPARAMS:
   MODELTYPE: 'LSTM'
   HIDDEN_SIZE: 128
@@ -13,9 +13,9 @@ HYPERPARAMS:
   NUM_EPOCHS: 10
   LEARNING_RATE: 0.001
   LABEL_CLASS: ['unknown', 'standby', 'idling', 'cutting']
-  LEN_FRAME: 150 # [ms]
+  LEN_FRAME: 100 # [ms]
 FEATUREPARAMS:
   SAMPLING_RATE: 44100
   LEN_WINDOW: 1024
   HOP_LENGTH: 256
-  CHUNK: 6615 # 50ms -> 2205, 100ms -> 4410 same as sample per frame
+  CHUNK: 4410 # 50ms -> 2205, 100ms -> 4410 same as sample per frame
