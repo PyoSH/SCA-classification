@@ -228,18 +228,41 @@ def extract_feature_embeddings(model, dataloader, device):
             inputs = inputs.to(device)
             targets = targets.to(device)
 
-            # CNN 최종 출력 임베딩
-            x = model.feature_extractor(inputs)
+            x = None
+
+            if model.name == 'C-MultiScale':
+                ## AMS-CNN 최종 출력 임베딩
+                # Forward pass through the model
+                s = model.cnnBlock_1_small(inputs)
+                m = model.cnnBlock_1_medium(inputs)
+                l = model.cnnBlock_1_large(inputs)
+
+                # Make sure the time dimension is consistent
+                min_time = min(s.shape[2], m.shape[2], l.shape[2])
+                s = s[:, :, :min_time]
+                m = m[:, :, :min_time]
+                l = l[:, :, :min_time]
+
+                # Concatenate the outputs from all the branches
+                combined = torch.cat([s, m, l], dim=1)
+                combined = combined.transpose(1, 2)  # [batch_size, time_steps, channels]
+
+                # Apply the attention layer to the concatenated features
+                x = model.attention(combined)
+            elif model.name == 'C_test':
+                ## CNN 최종 출력 임베딩
+                x = model.feature_extractor(inputs)
+            elif model.name == 'no feature, before FC':
+                ## CNN → LSTM → 최종 출력이 아닌, LSTM의 임베딩 출력까지 사용
+                x = x.transpose(1, 2)  # [batch, time, channels]
+                lstm_out, _ = model.lstm(x)
+
+                # 마지막 타임스텝의 출력 벡터 사용
+                embedding = lstm_out[:, -1, :].cpu().numpy()
 
             # 시각화를 위해 (batch, channels, time)를 (batch, -1)로 평탄화
             # embedding = x.view(x.size(0), -1).cpu().numpy()
-
-            # CNN → LSTM → 최종 출력이 아닌, LSTM의 임베딩 출력까지 사용
-            x = x.transpose(1, 2)  # [batch, time, channels]
-            lstm_out, _ = model.lstm(x)
-
-            # 마지막 타임스텝의 출력 벡터 사용
-            embedding = lstm_out[:, -1, :].cpu().numpy()
+            embedding = x.reshape(x.size(0), -1).cpu().numpy()
 
             features.append(embedding)
             labels.append(targets.cpu().numpy())

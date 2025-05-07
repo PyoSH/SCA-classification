@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
+import torch
 
 class LSTMModel(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
@@ -53,6 +54,45 @@ class CNNBlock(nn.Module):
 
         x = self.bn(x)
         # print(f"batch norm: [{x.shape}]")
+
+        x = self.pool(x)
+        # print(f"max pooling size: [{x.shape}]")
+
+        return x
+
+    def _initialize_weights(self):
+        """He initialize implement"""
+        # init.xavier_uniform_(self.cnn.weight)
+        init.kaiming_normal_(self.cnn.weight, nonlinearity='relu')
+
+        if self.cnn.bias is not None:
+            init.zeros_(self.cnn.bias)
+
+class CNNBlock_test(nn.Module):
+    def __init__(self, in_ch, out_ch, kernel_size, stride, pad):
+        super(CNNBlock_test, self).__init__()
+        self.cnn = nn.Conv1d(
+            in_channels=in_ch,
+            out_channels=out_ch,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=pad
+        )
+        self.bn = nn.BatchNorm1d(out_ch)
+        self.pool = nn.MaxPool1d(kernel_size=4, stride=4)
+        self._initialize_weights()
+
+    def forward(self, x):
+        # x.shape = [batch_size, in_channels, time] = [batch_size, 1, 6615]
+        # print(f"input size: [{x.shape}]")
+
+        x = self.cnn(x)
+        # print(f"CNN : [{x.shape}]")
+
+        x = self.bn(x)
+        # print(f"batch norm: [{x.shape}]")
+
+        x = F.relu(x)
 
         x = self.pool(x)
         # print(f"max pooling size: [{x.shape}]")
@@ -132,6 +172,37 @@ class CNNFeatureExtractor_CRNN8(nn.Module):
         x = self.block4(x)
         x = self.block5(x)
         return x
+
+class CNNFeatureExtractor_MultiScale(nn.Module):
+    def __init__(self):
+        super(CNNFeatureExtractor_MultiScale, self).__init__()
+        self.block1 = CNNBlock(in_ch=1, out_ch=64, kernel_size=80, stride=4, pad=0)  # C(64, 80/4)
+        self.block2 = CNNBlock(in_ch=64, out_ch=64, kernel_size=3, stride=1, pad=1)  # C(64, 3)
+
+
+    def forward(self, x):
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+        x = self.block5(x)
+        return x
+
+
+# Attention module (simple channel attention)
+class AttentionModule(nn.Module):
+    def __init__(self, in_dim):
+        super(AttentionModule, self).__init__()
+        self.attn = nn.Sequential(
+            nn.Linear(in_dim, in_dim // 2),
+            nn.ReLU(),
+            nn.Linear(in_dim // 2, in_dim),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        attn_weights = self.attn(x)
+        return x * attn_weights
 
 class CLSTM_3(nn.Module):
     def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
@@ -229,6 +300,46 @@ class C_CRNN8(nn.Module):
         lstm_out, _ = self.lstm(x)          # [B, T, H]
         x = lstm_out[:, -1, :]              # [B, H]
         return self.fc(x)
+
+class C_MultiScale_1st(nn.Module):
+    def __init__(self, output_dim, hidden_dim=128, num_layers=1):
+        super(C_MultiScale_1st, self).__init__()
+        self.name="C-MultiScale"
+
+        # 1. multi scale CNN blocks
+        self.cnnBlock_1_small = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=44, stride=1, pad=0)      # 1ms
+        self.cnnBlock_1_medium = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=220, stride=1, pad=0)    # 5ms
+        self.cnnBlock_1_large = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=441, stride=1, pad=0)     # 10ms
+
+        # # 2. Feature projection
+        # self.cnnBlock_2_small = CNNBlock_test(in_ch=64, out_ch=128, kernel_size=44, stride=4, pad=0)  # 10ms
+        # self.cnnBlock_2_medium = CNNBlock_test(in_ch=64, out_ch=128, kernel_size=, stride=4, pad=0)  # 10ms
+        # self.cnnBlock_2_large = CNNBlock_test(in_ch=64, out_ch=128, kernel_size=44, stride=4, pad=0)  # 10ms
+
+        # Attention after concat
+        self.attention = AttentionModule(64*3)
+
+        self.lstm = nn.LSTM(input_size=64*3, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, dropout=0.1)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+        s = self.cnnBlock_1_small(x)
+        m = self.cnnBlock_1_medium(x)
+        l = self.cnnBlock_1_large(x)
+
+        min_time = min(s.shape[2], m.shape[2], l.shape[2])
+        s = s[:, :, :min_time]
+        m = m[:, :, :min_time]
+        l = l[:, :, :min_time]
+
+        combined = torch.cat([s,m,l], dim=1)
+        combined = combined.transpose(1,2)
+
+        combined = self.attention(combined)
+
+        lstm_out, _ = self.lstm(combined)  # [B, T, H]
+        out = lstm_out[:, -1, :]  # [B, H]
+        return self.fc(out)
 
 class CRNN_3(nn.Module):
     def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):

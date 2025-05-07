@@ -168,6 +168,8 @@ def plot_comparison(model_type, y_ts, y_ps, classes, show='True'):
         plt.plot(x, y_ps, color='magenta', linestyle='-', marker='', label='CLSTM predicted', linewidth=1)
     elif model_type == 'C_test':
         plt.plot(x, y_ps, color='black', linestyle='-', marker='', label='CLSTM-test predicted', linewidth=1)
+    elif model_type == 'C-MultiScale':
+        plt.plot(x, y_ps, color='black', linestyle='-', marker='', label='AMSC-RNN predicted', linewidth=1)
 
     plt.xlabel('Audio frame')
     plt.ylabel('Operational situation')

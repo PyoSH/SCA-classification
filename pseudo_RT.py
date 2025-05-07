@@ -61,6 +61,8 @@ if __name__ == '__main__':
         model = CRNN_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
     elif cfg.HYPERPARAMS.MODELTYPE == 'C-LSTM':
         model = CLSTM_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif cfg.HYPERPARAMS.MODELTYPE == 'C-MultiScale':
+        model = C_MultiScale_1st(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
 
     is_HybridModel = (cfg.HYPERPARAMS.MODELTYPE[0] == 'C')
 
@@ -86,7 +88,7 @@ if __name__ == '__main__':
         logger.info(f'start, {raw_audio.shape}')
         start_t = time.time()
 
-        if not is_HybridModel:
+        if is_HybridModel:
             tensor_audio = torch.tensor(raw_audio, dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(device)
         else:
             featureVector = get_frame_to_mfcc(raw_audio, samplingRate=mfcc_const.sr,
@@ -96,7 +98,7 @@ if __name__ == '__main__':
             tensor_audio = torch.tensor(featureVector[:, :, :mfcc_const.n_mfcc], dtype=torch.float32).to(
                 device)  # 입력 텐서 주의!!!!
 
-        logger.info(f'predict start, {raw_audio.shape}')
+        logger.info(f'predict start, {tensor_audio.shape}')
         with torch.no_grad():
             model.eval()
             outputs = model(tensor_audio)
