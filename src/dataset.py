@@ -2,6 +2,7 @@ import copy
 import glob
 
 import pandas as pd
+from sympy.codegen.ast import int32
 from torch.utils.data import Dataset
 from src.feature_extraction import *
 from loguru import logger
@@ -54,7 +55,7 @@ labelProcessing 2024-04-04 표승현
 예측 수행할 때 라밸 데이터를 특징 벡터에 맞게 나눠주는 함수
 dataset_bringup에서 사용
 '''
-def labelProcessing(label_raw, vectorShape, label_class, sampleRate, len_frame):
+def labelProcessing(label_raw, vectorShape, label_class, sampleRate, len_frame, stride):
     label_raw.columns = ['start', 'end', 'label']
 
     # 레이블을 숫자로 매핑
@@ -62,16 +63,26 @@ def labelProcessing(label_raw, vectorShape, label_class, sampleRate, len_frame):
 
     # 레이블 데이터 준비
     label_processed = np.zeros(vectorShape)  # 모델 입력 차원(= 특징 벡터 열 개수)에 맞는 레이블 배열 초기화
+
     for _, row in label_raw.iterrows():
-        start_frame = int(row['start'] * sampleRate / len_frame) # audio frame 단위.
-        end_frame = int(row['end'] * sampleRate / len_frame)
-        temp_label = None
-        # if row['label'] == 'hardcutting_v' or row['label'] == 'hardcutting_h': temp_label = 'hardcutting'
-        if row['label'] == 'hardcutting' or row['label'] == 'cutting' : temp_label = 'cutting'
-        elif row['label'] not in label_class : temp_label = 'unknown'
-        else: temp_label = row['label']
-        # label_processed[start_frame:end_frame] = label_mapping[row['label']]
-        label_processed[start_frame:end_frame] = label_mapping[temp_label]
+
+        a = int(row['start'] * sampleRate)  # audio sample 단위.
+        b = int(row['end'] * sampleRate)
+
+        idx_frame_start = a // stride
+        idx_frame_end = (b-len_frame+1) // stride
+
+        if idx_frame_start <= idx_frame_end:
+            temp_label = None
+
+            # if row['label'] == 'hardcutting_v' or row['label'] == 'hardcutting_h': temp_label = 'hardcutting'
+            if row['label'] == 'hardcutting' or row['label'] == 'cutting' : temp_label = 'cutting'
+            elif row['label'] not in label_class : temp_label = 'unknown'
+            else: temp_label = row['label']
+            # label_processed[start_frame:end_frame] = label_mapping[row['label']]
+            label_processed[idx_frame_start:idx_frame_end] = label_mapping[temp_label]
+        else:
+            pass
 
     return label_processed
 

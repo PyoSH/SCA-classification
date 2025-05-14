@@ -55,18 +55,36 @@ if __name__ == '__main__':
         #     sample_rate = new_sample_rate
         #     len_frame_sample = int(len_frame_time * sample_rate)  # sample num = 2205, 100ms frame = 4410 samples.
 
-        num_frame = len(audioData) // len_frame_sample
-        audio_processed = np.zeros((num_frame,len_frame_sample), dtype=np.float32)
+        # # 슬라이딩 윈도우 설정
+        # overlap_ratio = 0.8  # 데이터를 5배로 증강하려면 80% overlap
+        # stride_sample = int(len_frame_sample * (1 - overlap_ratio))  # 이동 간격
+        #
+        # # 프레임 개수 계산 (소수점 손실 보정 포함)
+        # num_frame = (len(audioData) - len_frame_sample) // stride_sample + 1
+        # audio_processed = np.zeros((num_frame, len_frame_sample), dtype=np.float32)
+        #
+        # # 슬라이딩 윈도우 적용
+        # for idx in range(num_frame):
+        #     idx_start = idx * stride_sample
+        #     idx_end = idx_start + len_frame_sample
+        #     audio_processed[idx, :] = audioData[idx_start:idx_end]
 
-        for idx in range(0, num_frame):
-            idx_start = idx*len_frame_sample
-            idx_end = (idx+1)*len_frame_sample
+        k_tgt = int(sample_rate * 100 * 0.001)  # 4410 frames = sample_rate * 100ms (음향 길이) * 0.001 (milli 단위환산)
+        k_curr = len_frame_sample  # 22050 frames
 
-            singleFrame = audioData[idx_start: idx_end]
-            audio_processed[idx, :] = singleFrame[:]
+        n = len(audioData)
+        num_frame_tgt = n // k_tgt
+        size_stride = (n - k_curr) // (num_frame_tgt - 1)
+        num_frame = (n - k_curr) // size_stride + 1
+        audio_processed = np.zeros((num_frame, len_frame_sample), dtype=np.float32)
+
+        for idx in range(num_frame):
+            idx_start = idx * size_stride
+            idx_end = k_curr + idx * size_stride
+            audio_processed[idx, :] = audioData[idx_start:idx_end]
 
         label_raw = pd.read_csv(tempLabelPath, header=None, sep='\t')
-        label_processed = labelProcessing(label_raw, num_frame, label_class=label_class, sampleRate=sample_rate, len_frame=len_frame_sample)
+        label_processed = labelProcessing(label_raw, num_frame, label_class=label_class, sampleRate=sample_rate, len_frame=len_frame_sample, stride=size_stride)
 
         temp2dMat = np.zeros((num_frame, len_frame_sample +1), dtype=np.float32) #공간 낭비 아깝긴 한데... 생각한건 이거다.
         temp2dMat[:,0:len_frame_sample] = audio_processed
