@@ -237,18 +237,18 @@ def extract_feature_embeddings(model, dataloader, device):
                 m = model.cnnBlock_1_medium(inputs)
                 l = model.cnnBlock_1_large(inputs)
 
-                # Make sure the time dimension is consistent
-                min_time = min(s.shape[2], m.shape[2], l.shape[2])
-                s = s[:, :, :min_time]
-                m = m[:, :, :min_time]
-                l = l[:, :, :min_time]
+                x = l
 
-                # Concatenate the outputs from all the branches
-                combined = torch.cat([s, m, l], dim=1)
-                combined = combined.transpose(1, 2)  # [batch_size, time_steps, channels]
+                # # Make sure the time dimension is consistent
+                # min_time = min(s.shape[2], m.shape[2], l.shape[2])
+                # s = s[:, :, :min_time]
+                # m = m[:, :, :min_time]
+                # l = l[:, :, :min_time]
 
-                # Apply the attention layer to the concatenated features
-                x = model.attention(combined)
+                # # Concatenate the outputs from all the branches
+                # combined = torch.cat([s, m, l], dim=1)
+                # combined = combined.transpose(1, 2)  # [batch_size, time_steps, channels]
+                # x = model.attention(combined)
             elif model.name == 'C_test':
                 ## CNN 최종 출력 임베딩
                 x = model.feature_extractor(inputs)
