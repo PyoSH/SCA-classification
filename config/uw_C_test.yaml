@@ -31,9 +31,7 @@ PATH:
 #  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_500ms_all.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_100ms_all.npy
 
-#  TRAIN_PATH: ./data/dataset/uw_class4_train.npy
-#  TEST_PATH: ./data/dataset/uw_class4_test.npy
-  TEST_PATH: ./data/dataset/uw_standby.npy
+  TEST_PATH: ./data/dataset/inspection/uw_44kHz_1000ms_standby.npy
 
   MODEL_PATH: ./results/C_test_44kHz_100ms_fold5.pth #this model will be made in path
 HYPERPARAMS:
@@ -45,7 +43,7 @@ HYPERPARAMS:
   NUM_EPOCHS: 30
   LEARNING_RATE: 0.001
   LABEL_CLASS: ['unknown', 'standby', 'idling', 'cutting']
-  LEN_FRAME: 100 # [ms] 150
+  LEN_FRAME: 1000 # [ms] 150
 FEATUREPARAMS:
   SAMPLING_RATE: 44100
   LEN_WINDOW: 1024

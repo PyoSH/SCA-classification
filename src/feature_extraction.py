@@ -308,7 +308,7 @@ def plot_tsne_3d(features, labels, class_names=None, perplexity=30, title='t-SNE
         idx = labels == label
         ax.scatter(reduced[idx, 0], reduced[idx, 1], reduced[idx, 2],
                    label=class_names[int(label)] if class_names else f'Class {int(label)}',
-                   alpha=0.6)
+                   alpha=0.6, s=100)
 
     ax.set_title(title)
     ax.set_xlabel("TSNE 1")

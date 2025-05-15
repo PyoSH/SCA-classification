@@ -69,8 +69,11 @@ def labelProcessing(label_raw, vectorShape, label_class, sampleRate, len_frame, 
         a = int(row['start'] * sampleRate)  # audio sample 단위.
         b = int(row['end'] * sampleRate)
 
-        idx_frame_start = a // stride
-        idx_frame_end = (b-len_frame+1) // stride
+        # idx_frame_start = a // stride
+        # idx_frame_end = (b - len_frame + 1) // stride
+
+        idx_frame_start = 0 if stride == 0 else a//stride
+        idx_frame_end = b - idx_frame_start if stride == 0 else (b-len_frame+1) // stride
 
         if idx_frame_start <= idx_frame_end:
             temp_label = None
