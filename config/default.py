@@ -6,6 +6,7 @@ _C.PATH= CN()
 _C.PATH.TRAIN_PATH = '../data/set_100ms/data_100ms.npy'
 _C.PATH.TEST_PATH = '../data/set_100ms/test_100ms.npy'
 _C.PATH.INSPECTION_PATH = '../data/set_100ms/test_100ms.npy'
+_C.PATH.SAMPLES_PATH = '../data/set_100ms/test_100ms.npy'
 _C.PATH.MODEL_PATH = '../results/model_100ms.pth'
 
 _C.HYPERPARAMS = CN()

@@ -48,7 +48,7 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
 
     # data load
-    data_raw = np.load(cfg.PATH.TEST_PATH)
+    data_raw = np.load(cfg.PATH.SAMPLES_PATH)
     data_audio = data_raw[:, 0:-1]
     data_label = data_raw[:, -1]
     data_audio_std = np.zeros_like(data_audio)

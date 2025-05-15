@@ -16,23 +16,23 @@ PATH:
 #  TEST_PATH: ./data/dataset/test/uw_16kHz_1sec_test.npy
 #  TEST_PATH: ./data/dataset/test/uw_16kHz_500ms_test.npy
 #  TEST_PATH: ./data/dataset/test/uw_16kHz_100ms_test.npy
-#  TEST_PATH: ./data/dataset/samples/uw_samples_16kHz_1s_all.npy
-#  TEST_PATH: ./data/dataset/samples/uw_samples_16kHz_500ms_all.npy
-#  TEST_PATH: ./data/dataset/samples/uw_samples_16kHz_100ms_all.npy
+#  SAMPLES_PATH: ./data/dataset/samples/uw_samples_16kHz_1s_all.npy
+#  SAMPLES_PATH: ./data/dataset/samples/uw_samples_16kHz_500ms_all.npy
+#  SAMPLES_PATH: ./data/dataset/samples/uw_samples_16kHz_100ms_all.npy
 
 #  TEST_PATH: ./data/dataset/test/uw_32kHz_1sec_test.npy
 #  TEST_PATH: ./data/dataset/test/uw_32kHz_500ms_test.npy
 #  TEST_PATH: ./data/dataset/test/uw_32kHz_100ms_test.npy
-#  TEST_PATH: ./data/dataset/samples/uw_samples_32kHz_1s_all.npy
-#  TEST_PATH: ./data/dataset/samples/uw_samples_32kHz_500ms_all.npy
-#  TEST_PATH: ./data/dataset/samples/uw_samples_32kHz_100ms_all.npy
+#  SAMPLES_PATH: ./data/dataset/samples/uw_samples_32kHz_1s_all.npy
+#  SAMPLES_PATH: ./data/dataset/samples/uw_samples_32kHz_500ms_all.npy
+#  SAMPLES_PATH: ./data/dataset/samples/uw_samples_32kHz_100ms_all.npy
 
 #  TEST_PATH: ./data/dataset/test/uw_44kHz_1sec_test.npy
 #  TEST_PATH: ./data/dataset/test/uw_44kHz_500ms_test.npy
 #  TEST_PATH: ./data/dataset/test/uw_44kHz_100ms_test.npy
-#  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_1s_all.npy
-#  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_500ms_all.npy
-#  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_100ms_all.npy
+#  SAMPLES_PATH: ./data/dataset/samples/uw_samples_44kHz_1s_all.npy
+#  SAMPLES_PATH: ./data/dataset/samples/uw_samples_44kHz_500ms_all.npy
+#  SAMPLES_PATH: ./data/dataset/samples/uw_samples_44kHz_100ms_all.npy
 
   TEST_PATH: ./data/dataset/inspection/uw_44kHz_1000ms_standby.npy
 

@@ -307,7 +307,7 @@ class C_MultiScale_1st(nn.Module):
         self.name="C-MultiScale"
 
         # 1. multi scale CNN blocks
-        self.cnnBlock_1_small = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=441, stride=1, pad=0)      # 1ms
+        self.cnnBlock_1_small = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=441, stride=1, pad=0)      # 10ms
         self.cnnBlock_1_medium = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=2205, stride=1, pad=0)    # 50ms
         self.cnnBlock_1_large = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=4410, stride=1, pad=0)     # 100ms
 

@@ -40,7 +40,7 @@ if __name__ == '__main__':
     def extract_label(path):
         return path.split("/")[-1].rsplit("_", 1)[-1].split(".")[0]
 
-    working_state = extract_label(cfg.PATH.TEST_PATH)
+    working_state = extract_label(cfg.PATH.INSPECTION_PATH)
 
     model = None
     # (1) 학습된 모델의 CNN layer 에서 가중치 추출
@@ -70,7 +70,7 @@ if __name__ == '__main__':
             sorted_idx = viz_filter_map(model, block_name, "cnn",ch_idx,44100)
 
             # # 데이터 불러오고, 모델에 넣을 준비
-            data_raw = np.load(cfg.PATH.TEST_PATH)
+            data_raw = np.load(cfg.PATH.INSPECTION_PATH)
             data_audio = data_raw[:, 0:-1]
             data_label = data_raw[:, -1]
             data_audio_std = deepcopy(data_audio)

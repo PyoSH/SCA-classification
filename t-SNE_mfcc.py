@@ -24,7 +24,7 @@ mfcc_const = MFCC_params(cfg.FEATUREPARAMS.SAMPLING_RATE, cfg.FEATUREPARAMS.NUM_
 if __name__ == '__main__':
 
     # data load
-    data_raw = np.load(cfg.PATH.TEST_PATH)
+    data_raw = np.load(cfg.PATH.SAMPLES_PATH)
     data_audio = data_raw[:, 0:-1]
     data_label = data_raw[:, -1]
 
