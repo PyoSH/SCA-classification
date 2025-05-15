@@ -1,21 +1,23 @@
 # parameters for train model
 
 PATH:
-#  TRAIN_PATH: ./data/dataset/uw_44kHz_1sec_train_aug.npy
-  TRAIN_PATH: ./data/dataset/uw_44kHz_500ms_train_aug.npy
-#  TRAIN_PATH: ./data/dataset/uw_44kHz_100ms_train.npy
-#  TEST_PATH: ./data/dataset/uw_44kHz_1sec_test_aug.npy
-#  TEST_PATH: ./data/dataset/uw_44kHz_500ms_test_aug.npy
-#  TEST_PATH: ./data/dataset/uw_44kHz_100ms_test.npy
-#  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_1s_all_aug.npy
-  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_500ms_all_aug.npy
+  TRAIN_PATH: ./data/dataset/train/uw_44kHz_1sec_train_aug.npy
+#  TRAIN_PATH: ./data/dataset/train/uw_44kHz_500ms_train_aug.npy
+#  TRAIN_PATH: ./data/dataset/train/uw_44kHz_100ms_train.npy
+
+#  TEST_PATH: ./data/dataset/test/uw_44kHz_1sec_test_aug.npy
+#  TEST_PATH: ./data/dataset/test/uw_44kHz_500ms_test_aug.npy
+#  TEST_PATH: ./data/dataset/test/uw_44kHz_100ms_test.npy
+
+  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_1s_all_aug.npy
+#  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_500ms_all_aug.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_100ms_all.npy
 
-#  TRAIN_PATH: ./data/dataset/uw_class4_train.npy
-#  TEST_PATH: ./data/dataset/uw_class4_test.npy
-#  TEST_PATH: ./data/dataset/uw_standby.npy
+  INSPECTION_PATH: ./data/dataset/inspection/uw_44kHz_100ms_cutting.npy
+#  INSPECTION_PATH: ./data/dataset/inspection/uw_44kHz_500ms_cutting.npy
+#  INSPECTION_PATH: ./data/dataset/inspection/uw_44kHz_1000ms_cutting.npy
 
-  MODEL_PATH: ./results/multi_scale/MSCRNN_44kHz_500ms_fold1.pth #this model will be made in path
+  MODEL_PATH: ./results/multi_scale/MSCRNN_44kHz_1000ms_fold1.pth #this model will be made in path
 HYPERPARAMS:
   MODELTYPE: 'C-MultiScale'
   HIDDEN_SIZE: 128

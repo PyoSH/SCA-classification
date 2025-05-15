@@ -237,7 +237,7 @@ def extract_feature_embeddings(model, dataloader, device):
                 m = model.cnnBlock_1_medium(inputs)
                 l = model.cnnBlock_1_large(inputs)
 
-                x = l
+                x = m
 
                 # # Make sure the time dimension is consistent
                 # min_time = min(s.shape[2], m.shape[2], l.shape[2])

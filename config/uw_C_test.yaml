@@ -1,32 +1,35 @@
 # parameters for train model
 
 PATH:
-#  TRAIN_PATH: ./data/dataset/uw_16kHz_1sec_train.npy
-#  TRAIN_PATH: ./data/dataset/uw_16kHz_500ms_train.npy
-#  TRAIN_PATH: ./data/dataset/uw_16kHz_100ms_train.npy
-#  TEST_PATH: ./data/dataset/uw_16kHz_1sec_test.npy
-#  TEST_PATH: ./data/dataset/uw_16kHz_500ms_test.npy
-#  TEST_PATH: ./data/dataset/uw_16kHz_100ms_test.npy
+#  TRAIN_PATH: ./data/dataset/train/uw_16kHz_1sec_train_aug.npy
+#  TRAIN_PATH: ./data/dataset/train/uw_16kHz_500ms_train_aug.npy
+#  TRAIN_PATH: ./data/dataset/train/uw_16kHz_100ms_train.npy
+
+#  TRAIN_PATH: ./data/dataset/train/uw_32kHz_1sec_train.npy
+#  TRAIN_PATH: ./data/dataset/train/uw_32kHz_500ms_train.npy
+#  TRAIN_PATH: ./data/dataset/train/uw_32kHz_100ms_train.npy
+
+  TRAIN_PATH: ./data/dataset/train/uw_44kHz_1sec_train.npy
+#  TRAIN_PATH: ./data/dataset/train/uw_44kHz_500ms_train.npy
+#  TRAIN_PATH: ./data/dataset/train/uw_44kHz_100ms_train.npy
+
+#  TEST_PATH: ./data/dataset/test/uw_16kHz_1sec_test.npy
+#  TEST_PATH: ./data/dataset/test/uw_16kHz_500ms_test.npy
+#  TEST_PATH: ./data/dataset/test/uw_16kHz_100ms_test.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_16kHz_1s_all.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_16kHz_500ms_all.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_16kHz_100ms_all.npy
 
-#  TRAIN_PATH: ./data/dataset/uw_32kHz_1sec_train.npy
-#  TRAIN_PATH: ./data/dataset/uw_32kHz_500ms_train.npy
-#  TRAIN_PATH: ./data/dataset/uw_32kHz_100ms_train.npy
-#  TEST_PATH: ./data/dataset/uw_32kHz_1sec_test.npy
-#  TEST_PATH: ./data/dataset/uw_32kHz_500ms_test.npy
-#  TEST_PATH: ./data/dataset/uw_32kHz_100ms_test.npy
+#  TEST_PATH: ./data/dataset/test/uw_32kHz_1sec_test.npy
+#  TEST_PATH: ./data/dataset/test/uw_32kHz_500ms_test.npy
+#  TEST_PATH: ./data/dataset/test/uw_32kHz_100ms_test.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_32kHz_1s_all.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_32kHz_500ms_all.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_32kHz_100ms_all.npy
 
-  TRAIN_PATH: ./data/dataset/uw_44kHz_1sec_train.npy
-#  TRAIN_PATH: ./data/dataset/uw_44kHz_500ms_train.npy
-#  TRAIN_PATH: ./data/dataset/uw_44kHz_100ms_train.npy
-#  TEST_PATH: ./data/dataset/uw_44kHz_1sec_test.npy
-#  TEST_PATH: ./data/dataset/uw_44kHz_500ms_test.npy
-#  TEST_PATH: ./data/dataset/uw_44kHz_100ms_test.npy
+#  TEST_PATH: ./data/dataset/test/uw_44kHz_1sec_test.npy
+#  TEST_PATH: ./data/dataset/test/uw_44kHz_500ms_test.npy
+#  TEST_PATH: ./data/dataset/test/uw_44kHz_100ms_test.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_1s_all.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_500ms_all.npy
 #  TEST_PATH: ./data/dataset/samples/uw_samples_44kHz_100ms_all.npy
