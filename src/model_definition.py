@@ -173,21 +173,28 @@ class CNNFeatureExtractor_CRNN8(nn.Module):
         x = self.block5(x)
         return x
 
-class CNNFeatureExtractor_MultiScale(nn.Module):
-    def __init__(self):
-        super(CNNFeatureExtractor_MultiScale, self).__init__()
-        self.block1 = CNNBlock(in_ch=1, out_ch=64, kernel_size=80, stride=4, pad=0)  # C(64, 80/4)
-        self.block2 = CNNBlock(in_ch=64, out_ch=64, kernel_size=3, stride=1, pad=1)  # C(64, 3)
-
+class CNNFeatureExtractor_multi(nn.Module):
+    def __init__(self, kernel_init):
+        super(CNNFeatureExtractor_multi, self).__init__()
+        self.cnnBlock1 = CNNBlock(in_ch=1, out_ch=64, kernel_size=kernel_init, stride=4, pad=0)
+        self.cnnBlock2 = CNNBlock(in_ch=64, out_ch=64, kernel_size=3, stride=1, pad=0)
+        self.cnnBlock3 = CNNBlock(in_ch=64, out_ch=128, kernel_size=3, stride=1, pad=0)
+        self.cnnBlock4 = CNNBlock(in_ch=128, out_ch=256, kernel_size=3, stride=1, pad=0)
 
     def forward(self, x):
-        x = self.block1(x)
-        x = self.block2(x)
-        x = self.block3(x)
-        x = self.block4(x)
-        x = self.block5(x)
-        return x
+        # x.shape = [batch_size, in_channels, time] = [batch_size, 1, 6615]
+        # print("1st CNN layer")
+        x = self.cnnBlock1(x)
 
+        # print("2nd CNN layer")
+        x = self.cnnBlock2(x)
+
+        # print("3rd CNN layer")
+        x = self.cnnBlock3(x)
+
+        x = self.cnnBlock4(x)
+
+        return x
 
 # Attention module (simple channel attention)
 class AttentionModule(nn.Module):
@@ -307,9 +314,9 @@ class C_MultiScale_1st(nn.Module):
         self.name="C-MultiScale"
 
         # 1. multi scale CNN blocks
-        self.cnnBlock_1_small = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=441, stride=1, pad=0)      # 10ms
-        self.cnnBlock_1_medium = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=2205, stride=1, pad=0)    # 50ms
-        self.cnnBlock_1_large = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=4410, stride=1, pad=0)     # 100ms
+        self.cnnBlock_1_small = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=44, stride=1, pad=0)      # 10ms
+        self.cnnBlock_1_medium = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=220, stride=1, pad=0)    # 50ms
+        self.cnnBlock_1_large = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=441, stride=1, pad=5)     # 100ms
 
         # # 2. Feature projection
         # self.cnnBlock_2_small = CNNBlock_test(in_ch=64, out_ch=128, kernel_size=44, stride=4, pad=0)  # 10ms
@@ -326,6 +333,41 @@ class C_MultiScale_1st(nn.Module):
         s = self.cnnBlock_1_small(x)
         m = self.cnnBlock_1_medium(x)
         l = self.cnnBlock_1_large(x)
+
+        min_time = min(s.shape[2], m.shape[2], l.shape[2])
+        s = s[:, :, :min_time]
+        m = m[:, :, :min_time]
+        l = l[:, :, :min_time]
+
+        combined = torch.cat([s,m,l], dim=1)
+        combined = combined.transpose(1,2)
+
+        combined = self.attention(combined)
+
+        lstm_out, _ = self.lstm(combined)  # [B, T, H]
+        out = lstm_out[:, -1, :]  # [B, H]
+        return self.fc(out)
+
+class C_MultiScale_2nd(nn.Module):
+    def __init__(self, output_dim, hidden_dim=128, num_layers=1):
+        super(C_MultiScale_2nd, self).__init__()
+        self.name="C-MultiScale-deep-layer4"
+
+        # 1. multi scale CNN blocks
+        self.feature_small = CNNFeatureExtractor_multi(kernel_init=44)
+        self.feature_medium = CNNFeatureExtractor_multi(kernel_init=220)
+        self.feature_large = CNNFeatureExtractor_multi(kernel_init=441)
+
+        # Attention after concat
+        self.attention = AttentionModule(256*3)
+
+        self.lstm = nn.LSTM(input_size=256*3, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, dropout=0.1)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+        s = self.feature_small(x)
+        m = self.feature_medium(x)
+        l = self.feature_large(x)
 
         min_time = min(s.shape[2], m.shape[2], l.shape[2])
         s = s[:, :, :min_time]

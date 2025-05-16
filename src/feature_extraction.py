@@ -106,7 +106,14 @@ CRNN 모델의 합성곱 필터 학습이 어떻게 되었는지 확인하는 �
 2025_02_26
 '''
 def viz_filter_map(model, section, layer_type, idx_ch, sampling_rate):
-    cnn_block =  getattr(model.feature_extractor, section)
+    cnn_block = None
+    if model.name == 'C-test':
+        cnn_block = getattr(model.feature_extractor, section)
+    elif model.name == 'C-MultiScale':
+        cnn_block = getattr(model, section)
+    elif 'C-MultiScale-deep' in model.name:
+        cnn_block = getattr(model, section, 'cnnBlock1')
+
     layer = getattr(cnn_block, layer_type)
 
     filters = layer.weight.data.cpu().numpy()  # CPU로 이동
@@ -174,7 +181,13 @@ def viz_feature_map(model, section, layer_type, ch_idx, sorted_idx, data_audio_s
 
         return hook
 
-    cnn_block = getattr(model.feature_extractor, section)
+    cnn_block = None
+    if model.name == 'C-MultiScale':
+        cnn_block = getattr(model.feature_extractor, section)
+    elif model.name == 'C-MultiScale':
+        cnn_block = getattr(model, section)
+    elif 'C-MultiScale-deep' in model.name:
+        cnn_block = getattr(model, section)
     layer = getattr(cnn_block, layer_type)
     layer.register_forward_hook(get_activation(section))
 
@@ -249,6 +262,25 @@ def extract_feature_embeddings(model, dataloader, device):
                 # combined = torch.cat([s, m, l], dim=1)
                 # combined = combined.transpose(1, 2)  # [batch_size, time_steps, channels]
                 # x = model.attention(combined)
+
+            elif model.name == 'C-MultiScale-deep-layer4':
+                s = model.feature_small(inputs)
+                m = model.feature_medium(inputs)
+                l = model.feature_large(inputs)
+
+                x = l
+
+                # # Make sure the time dimension is consistent
+                # min_time = min(s.shape[2], m.shape[2], l.shape[2])
+                # s = s[:, :, :min_time]
+                # m = m[:, :, :min_time]
+                # l = l[:, :, :min_time]
+
+                # # Concatenate the outputs from all the branches
+                # combined = torch.cat([s, m, l], dim=1)
+                # combined = combined.transpose(1, 2)  # [batch_size, time_steps, channels]
+                # x = model.attention(combined)
+
             elif model.name == 'C_test':
                 ## CNN 최종 출력 임베딩
                 x = model.feature_extractor(inputs)
@@ -261,7 +293,6 @@ def extract_feature_embeddings(model, dataloader, device):
                 embedding = lstm_out[:, -1, :].cpu().numpy()
 
             # 시각화를 위해 (batch, channels, time)를 (batch, -1)로 평탄화
-            # embedding = x.view(x.size(0), -1).cpu().numpy()
             embedding = x.reshape(x.size(0), -1).cpu().numpy()
 
             features.append(embedding)
@@ -270,7 +301,7 @@ def extract_feature_embeddings(model, dataloader, device):
 
     return np.vstack(features), np.hstack(labels), np.array(indices)
 
-def plot_tsne(features, labels, class_names=None, perplexity=30, title='t-SNE Visualization'):
+def plot_tsne(features, labels, class_names=None, perplexity=100, title='t-SNE Visualization'):
     """
     features : (N, D) numpy array of high-dim embeddings
     labels   : (N,) array of class labels (0, 1, 2, ...)

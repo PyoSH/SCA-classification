@@ -42,7 +42,8 @@ if __name__ == '__main__':
     elif cfg.HYPERPARAMS.MODELTYPE == 'C-test':
         model = C_test(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
     elif cfg.HYPERPARAMS.MODELTYPE == 'C-MultiScale':
-        model = C_MultiScale_1st(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        # model = C_MultiScale_1st(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        model = C_MultiScale_2nd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
 
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
