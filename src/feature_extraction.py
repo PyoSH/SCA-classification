@@ -112,7 +112,7 @@ def viz_filter_map(model, section, layer_type, idx_ch, sampling_rate):
     elif model.name == 'C-MultiScale':
         cnn_block = getattr(model, section)
     elif 'C-MultiScale-deep' in model.name:
-        cnn_block = getattr(model, section, 'cnnBlock1')
+        cnn_block = getattr(model, section).cnnBlock1
 
     layer = getattr(cnn_block, layer_type)
 
@@ -187,7 +187,7 @@ def viz_feature_map(model, section, layer_type, ch_idx, sorted_idx, data_audio_s
     elif model.name == 'C-MultiScale':
         cnn_block = getattr(model, section)
     elif 'C-MultiScale-deep' in model.name:
-        cnn_block = getattr(model, section)
+        cnn_block = getattr(model, section).cnnBlock1
     layer = getattr(cnn_block, layer_type)
     layer.register_forward_hook(get_activation(section))
 
@@ -263,7 +263,7 @@ def extract_feature_embeddings(model, dataloader, device):
                 # combined = combined.transpose(1, 2)  # [batch_size, time_steps, channels]
                 # x = model.attention(combined)
 
-            elif model.name == 'C-MultiScale-deep-layer4':
+            elif 'C-MultiScale-deep' in model.name:
                 s = model.feature_small(inputs)
                 m = model.feature_medium(inputs)
                 l = model.feature_large(inputs)
@@ -276,10 +276,11 @@ def extract_feature_embeddings(model, dataloader, device):
                 # m = m[:, :, :min_time]
                 # l = l[:, :, :min_time]
 
-                # # Concatenate the outputs from all the branches
+                # Concatenate the outputs from all the branches
                 # combined = torch.cat([s, m, l], dim=1)
                 # combined = combined.transpose(1, 2)  # [batch_size, time_steps, channels]
                 # x = model.attention(combined)
+                # x = combined
 
             elif model.name == 'C_test':
                 ## CNN 최종 출력 임베딩
@@ -301,7 +302,7 @@ def extract_feature_embeddings(model, dataloader, device):
 
     return np.vstack(features), np.hstack(labels), np.array(indices)
 
-def plot_tsne(features, labels, class_names=None, perplexity=100, title='t-SNE Visualization'):
+def plot_tsne(features, labels, class_names=None, perplexity=30, title='t-SNE Visualization'):
     """
     features : (N, D) numpy array of high-dim embeddings
     labels   : (N,) array of class labels (0, 1, 2, ...)
@@ -314,7 +315,7 @@ def plot_tsne(features, labels, class_names=None, perplexity=100, title='t-SNE V
         idx = labels == label
         plt.scatter(reduced[idx, 0], reduced[idx, 1],
                     label=class_names[int(label)] if class_names else f'Class {label}',
-                    alpha=0.6)
+                    alpha=0.6, s=100)
 
     plt.title(title)
     plt.legend()

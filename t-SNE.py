@@ -43,7 +43,8 @@ if __name__ == '__main__':
         model = C_test(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
     elif cfg.HYPERPARAMS.MODELTYPE == 'C-MultiScale':
         # model = C_MultiScale_1st(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        model = C_MultiScale_2nd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        # model = C_MultiScale_2nd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        model = C_MultiScale_3rd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
 
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
@@ -64,6 +65,6 @@ if __name__ == '__main__':
 
     features, labels, indices = extract_feature_embeddings(model=model, dataloader=data_loader, device=device)
     
-    # plot_tsne(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
-    plot_tsne_3d(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
+    plot_tsne(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
+    # plot_tsne_3d(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
     # plot_tsne_interactive(features, labels, indices, class_names=cfg.HYPERPARAMS.LABEL_CLASS)

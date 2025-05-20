@@ -56,7 +56,7 @@ logger.add("training.log", format="{time} {level} {message}", level="INFO", rota
 num_epochs = 50
 batch_size = 32
 learning_rate = 0.0001  # 기존보다 낮춘 학습률
-k_folds = 5  # K-Fold 개수
+k_folds = 2  # K-Fold 개수
 
 if __name__ == '__main__':
     set_seed(42)
@@ -99,7 +99,9 @@ if __name__ == '__main__':
         # ✅ 모델 초기화 (각 Fold마다 새로 학습해야 함)
         # model = C_test(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
         # model = C_MultiScale_1st(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        model = C_MultiScale_2nd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        # model = C_MultiScale_2nd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        model = C_MultiScale_3rd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         criterion = nn.CrossEntropyLoss()
 

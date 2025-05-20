@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 import torch
+import torchaudio
 
 class LSTMModel(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
@@ -196,6 +197,29 @@ class CNNFeatureExtractor_multi(nn.Module):
 
         return x
 
+class CNNFeatureExtractor_Mel(nn.Module):
+    def __init__(self, kernel_init):
+        super(CNNFeatureExtractor_Mel, self).__init__()
+        self.cnnBlock1 = CNNBlock(in_ch=1, out_ch=40, kernel_size=kernel_init, stride=4, pad=0)
+        self.cnnBlock2 = CNNBlock(in_ch=40, out_ch=40, kernel_size=3, stride=1, pad=0)
+        self.cnnBlock3 = CNNBlock(in_ch=40, out_ch=128, kernel_size=3, stride=1, pad=0)
+        self.cnnBlock4 = CNNBlock(in_ch=128, out_ch=256, kernel_size=3, stride=1, pad=0)
+
+    def forward(self, x):
+        # x.shape = [batch_size, in_channels, time] = [batch_size, 1, 6615]
+        # print("1st CNN layer")
+        x = self.cnnBlock1(x)
+
+        # print("2nd CNN layer")
+        x = self.cnnBlock2(x)
+
+        # print("3rd CNN layer")
+        x = self.cnnBlock3(x)
+
+        x = self.cnnBlock4(x)
+
+        return x
+
 # Attention module (simple channel attention)
 class AttentionModule(nn.Module):
     def __init__(self, in_dim):
@@ -210,6 +234,25 @@ class AttentionModule(nn.Module):
     def forward(self, x):
         attn_weights = self.attn(x)
         return x * attn_weights
+
+def initialize_mel_filter(conv_layer, sr, kernel_size, n_filters):
+    # Generate mel filterbank (torch)
+    mel_fb = torchaudio.functional.melscale_fbanks(
+        n_freqs=kernel_size,
+        f_min=0.0,
+        f_max=sr / 2,
+        n_mels=n_filters,
+        sample_rate=sr,
+        norm=None
+    )  # [kernel_size, n_mels]
+
+    mel_fb = mel_fb.T  # [n_mels, kernel_size]
+    mel_fb = mel_fb.unsqueeze(1)  # [n_mels, 1, kernel_size]
+
+    with torch.no_grad():
+        conv_layer.weight.copy_(mel_fb)
+        conv_layer.weight.requires_grad = False  # 고정
+        # conv_layer.weight.requires_grad = True  # 고정
 
 class CLSTM_3(nn.Module):
     def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
@@ -382,6 +425,40 @@ class C_MultiScale_2nd(nn.Module):
         lstm_out, _ = self.lstm(combined)  # [B, T, H]
         out = lstm_out[:, -1, :]  # [B, H]
         return self.fc(out)
+
+class C_MultiScale_3rd(nn.Module):
+    def __init__(self, output_dim, hidden_dim=128, num_layers=1, sr=44100):
+        super(C_MultiScale_3rd, self).__init__()
+        self.name="C-MultiScale-deep-mel-init"
+
+        self.feature_small = CNNFeatureExtractor_Mel(kernel_init=44)
+        self.feature_medium = CNNFeatureExtractor_Mel(kernel_init=220)
+        self.feature_large = CNNFeatureExtractor_Mel(kernel_init=441)
+
+        # Mel filter 초기화 (예: small only)
+        initialize_mel_filter(self.feature_small.cnnBlock1.cnn, sr=sr, kernel_size=44, n_filters=40)
+        initialize_mel_filter(self.feature_medium.cnnBlock1.cnn, sr=sr, kernel_size=220, n_filters=40)
+        initialize_mel_filter(self.feature_large.cnnBlock1.cnn, sr=sr, kernel_size=441, n_filters=40)
+
+        self.attention = AttentionModule(256 * 3)
+        self.lstm = nn.LSTM(input_size=256 * 3, hidden_size=hidden_dim,
+                            num_layers=num_layers, batch_first=True, dropout=0.1)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+        s = self.feature_small(x)
+        m = self.feature_medium(x)
+        l = self.feature_large(x)
+
+        min_time = min(s.shape[2], m.shape[2], l.shape[2])
+        s, m, l = s[:, :, :min_time], m[:, :, :min_time], l[:, :, :min_time]
+
+        combined = torch.cat([s, m, l], dim=1).transpose(1, 2)
+        combined = self.attention(combined)
+
+        lstm_out, _ = self.lstm(combined)
+        out = self.fc(lstm_out[:, -1, :])
+        return out
 
 class CRNN_3(nn.Module):
     def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
