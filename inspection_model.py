@@ -53,7 +53,8 @@ if __name__ == '__main__':
     elif cfg.HYPERPARAMS.MODELTYPE == 'C-MultiScale':
         # model = C_MultiScale_1st(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
         # model = C_MultiScale_2nd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        model = C_MultiScale_3rd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        # model = C_MultiScale_3rd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        model = C_MultiScale_4th(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
     model.eval()
@@ -87,7 +88,8 @@ if __name__ == '__main__':
                 viz_feature_map(model, block_name, "pool", ch_idx, sorted_idx, data_audio_std, device, working_state)
                 viz_feature_map(model, block_name, "cnn", ch_idx, sorted_idx, data_audio_std, device, working_state)
     elif cfg.HYPERPARAMS.MODELTYPE == 'C-MultiScale':
-        kernel_arr = ["small", "medium", "large"]
+        # kernel_arr = ["small", "medium", "large"]
+        kernel_arr = ["small", "large"]
         for kernel in kernel_arr:
             # block_name = f"cnnBlock_1_{kernel}"
             block_name = f"feature_{kernel}"

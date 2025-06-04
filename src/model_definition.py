@@ -251,8 +251,8 @@ def initialize_mel_filter(conv_layer, sr, kernel_size, n_filters):
 
     with torch.no_grad():
         conv_layer.weight.copy_(mel_fb)
-        conv_layer.weight.requires_grad = False  # 고정
-        # conv_layer.weight.requires_grad = True  # 고정
+        # conv_layer.weight.requires_grad = False  # 고정
+        conv_layer.weight.requires_grad = True  # 고정
 
 class CLSTM_3(nn.Module):
     def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
@@ -436,7 +436,7 @@ class C_MultiScale_3rd(nn.Module):
         self.feature_large = CNNFeatureExtractor_Mel(kernel_init=441)
 
         # Mel filter 초기화 (예: small only)
-        initialize_mel_filter(self.feature_small.cnnBlock1.cnn, sr=sr, kernel_size=44, n_filters=40)
+        # initialize_mel_filter(self.feature_small.cnnBlock1.cnn, sr=sr, kernel_size=44, n_filters=40)
         initialize_mel_filter(self.feature_medium.cnnBlock1.cnn, sr=sr, kernel_size=220, n_filters=40)
         initialize_mel_filter(self.feature_large.cnnBlock1.cnn, sr=sr, kernel_size=441, n_filters=40)
 
@@ -460,6 +460,39 @@ class C_MultiScale_3rd(nn.Module):
         out = self.fc(lstm_out[:, -1, :])
         return out
 
+class C_MultiScale_4th(nn.Module):
+    def __init__(self, output_dim, hidden_dim=128, num_layers=2, sr=44100):
+        super(C_MultiScale_4th, self).__init__()
+        self.name="C-MultiScale-deep-mel-init"
+
+        # self.feature_small = CNNFeatureExtractor_Mel(kernel_init=44)
+        self.feature_small = CNNFeatureExtractor_Mel(kernel_init=441)
+        # self.feature_large = CNNFeatureExtractor_Mel(kernel_init=441)
+        self.feature_large = CNNFeatureExtractor_Mel(kernel_init=1024)
+
+        # Mel filter 초기화 (예: small only)
+        # initialize_mel_filter(self.feature_small.cnnBlock1.cnn, sr=sr, kernel_size=44, n_filters=40)
+        # initialize_mel_filter(self.feature_large.cnnBlock1.cnn, sr=sr, kernel_size=441, n_filters=40)
+        initialize_mel_filter(self.feature_large.cnnBlock1.cnn, sr=sr, kernel_size=1024, n_filters=40)
+
+        self.attention = AttentionModule(256 * 2)
+        self.lstm = nn.LSTM(input_size=256 * 2, hidden_size=hidden_dim,
+                            num_layers=num_layers, batch_first=True, dropout=0.1)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+        s = self.feature_small(x)
+        l = self.feature_large(x)
+
+        min_time = min(s.shape[2], l.shape[2])
+        s, l = s[:, :, :min_time],l[:, :, :min_time]
+
+        combined = torch.cat([s, l], dim=1).transpose(1, 2)
+        combined = self.attention(combined)
+
+        lstm_out, _ = self.lstm(combined)
+        out = self.fc(lstm_out[:, -1, :])
+        return out
 class CRNN_3(nn.Module):
     def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
         super(CRNN_3, self).__init__()
