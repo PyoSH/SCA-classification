@@ -251,8 +251,8 @@ def initialize_mel_filter(conv_layer, sr, kernel_size, n_filters):
 
     with torch.no_grad():
         conv_layer.weight.copy_(mel_fb)
-        # conv_layer.weight.requires_grad = False  # 고정
-        conv_layer.weight.requires_grad = True  # 고정
+        # conv_layer.weight.requires_grad = False  # 학습 중 가중치 고정
+        conv_layer.weight.requires_grad = True  # 학습 중 가중치 갱신
 
 class CLSTM_3(nn.Module):
     def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
@@ -466,7 +466,7 @@ class C_MultiScale_4th(nn.Module):
         self.name="C-MultiScale-deep-mel-init"
 
         # self.feature_small = CNNFeatureExtractor_Mel(kernel_init=44)
-        self.feature_small = CNNFeatureExtractor_Mel(kernel_init=441)
+        self.feature_small = CNNFeatureExtractor_Mel(kernel_init=80)
         # self.feature_large = CNNFeatureExtractor_Mel(kernel_init=441)
         self.feature_large = CNNFeatureExtractor_Mel(kernel_init=1024)
 
@@ -493,6 +493,7 @@ class C_MultiScale_4th(nn.Module):
         lstm_out, _ = self.lstm(combined)
         out = self.fc(lstm_out[:, -1, :])
         return out
+
 class CRNN_3(nn.Module):
     def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
         super(CRNN_3, self).__init__()
