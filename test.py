@@ -47,25 +47,28 @@ if __name__ == '__main__':
 
     # 학습된 모델 불러오기
     model = None
-    if cfg.HYPERPARAMS.MODELTYPE == 'RNN':
-        model = RNNModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
-                         num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
-                         output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'LSTM':
-        model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
-                          num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
-                          output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-RNN':
-        model = CRNN_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-LSTM':
-        model = CLSTM_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-test':
-        model = C_test(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-MultiScale':
-        # model = C_MultiScale_1st(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        # model = C_MultiScale_2nd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        # model = C_MultiScale_3rd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        model = C_MultiScale_4th(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    # config에서 model type을 가져오기
+    model_type = cfg.HYPERPARAMS.MODELTYPE
+
+    # 모델 선택
+    if model_type == 'B1':
+        model = B1(input_dim=40, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                   num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                   output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B2-small':
+        model = B2_small(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B2-middle':
+        model = B2_middle(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B2-large':
+        model = B2_large(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B3':
+        model = B3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B4':
+        model = B4(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'P':
+        model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    else:
+        raise ValueError(f"Model type {model_type} is not recognized.")
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
     model.eval()
@@ -75,7 +78,7 @@ if __name__ == '__main__':
     data_label = data_law[:, -1]
 
     test_set = None
-    is_HybridModel = (cfg.HYPERPARAMS.MODELTYPE[0] == 'C')
+    is_HybridModel = True
 
     if is_HybridModel:
         data_audio_std = deepcopy(data_audio)

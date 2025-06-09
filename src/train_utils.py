@@ -158,18 +158,23 @@ def plot_comparison(model_type, y_ts, y_ps, classes, show='True'):
     plt.title('Comparison of real-time prediction and GT')
 
     plt.subplot(2, 1, 2)
-    if model_type == 'LSTM':
-        plt.plot(x, y_ps ,  color='green', linestyle='-', marker='', label='LSTM predicted', linewidth=1)
-    elif model_type == 'RNN':
-        plt.plot(x, y_ps, color='blue', linestyle='-', marker='', label='RNN predicted', linewidth=1)
-    elif model_type == 'CRNN_3':
-        plt.plot(x, y_ps, color='cyan', linestyle='-', marker='', label='CRNN predicted', linewidth=1)
-    elif model_type == 'CLSTM_3':
-        plt.plot(x, y_ps, color='magenta', linestyle='-', marker='', label='CLSTM predicted', linewidth=1)
-    elif model_type == 'C_test':
-        plt.plot(x, y_ps, color='black', linestyle='-', marker='', label='CLSTM-test predicted', linewidth=1)
-    elif 'C-MultiScale' in model_type:
-        plt.plot(x, y_ps, color='black', linestyle='-', marker='', label='AMSC-RNN predicted', linewidth=1)
+    if model_type == 'B1':
+        plt.plot(x, y_ps, color='#1f77b4', linestyle='-', marker='', label='MFCC+LSTM', linewidth=1)
+    elif model_type == 'B2-small':
+        plt.plot(x, y_ps, color='#ff7f0e', linestyle='-', marker='', label='SingleScale CNN-small', linewidth=1)
+    elif model_type == 'B2-middle':
+        plt.plot(x, y_ps, color='#2ca02c', linestyle='-', marker='', label='SingleScale CNN-middle', linewidth=1)
+    elif model_type == 'B2-large':
+        plt.plot(x, y_ps, color='#d62728', linestyle='-', marker='', label='SingleScale CNN-large', linewidth=1)
+    elif model_type == 'B3':
+        plt.plot(x, y_ps, color='#9467bd', linestyle='-', marker='', label='MultiScale (Kaiming)', linewidth=1)
+    elif model_type == 'B4':
+        plt.plot(x, y_ps, color='#8c564b', linestyle='-', marker='', label='MultiScale+Mel init', linewidth=1)
+    elif model_type == 'P':
+        plt.plot(x, y_ps, color='#e377c2', linestyle='-', marker='', label='Proposed', linewidth=1)
+
+    # Show the legend
+    plt.legend()
 
     plt.xlabel('Audio frame')
     plt.ylabel('Operational situation')

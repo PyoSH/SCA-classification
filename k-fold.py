@@ -56,7 +56,7 @@ logger.add("training.log", format="{time} {level} {message}", level="INFO", rota
 num_epochs = 50
 batch_size = 32
 learning_rate = 0.001  # 기존보다 낮춘 학습률0.0001
-k_folds = 2  # K-Fold 개수
+k_folds = 5  # K-Fold 개수
 
 if __name__ == '__main__':
     set_seed(42)
@@ -97,11 +97,28 @@ if __name__ == '__main__':
         test_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)
 
         # ✅ 모델 초기화 (각 Fold마다 새로 학습해야 함)
-        # model = C_test(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        # model = C_MultiScale_1st(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        # model = C_MultiScale_2nd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        # model = C_MultiScale_3rd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        model = C_MultiScale_4th(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        # config에서 model type을 가져오기
+        model_type = cfg.HYPERPARAMS.MODELTYPE
+
+        # 모델 선택
+        if model_type == 'B1':
+            model = B1(input_dim=40, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                       num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                       output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        elif model_type == 'B2-small':
+            model = B2_small(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        elif model_type == 'B2-middle':
+            model = B2_middle(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        elif model_type == 'B2-large':
+            model = B2_large(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        elif model_type == 'B3':
+            model = B3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        elif model_type == 'B4':
+            model = B4(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        elif model_type == 'P':
+            model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        else:
+            raise ValueError(f"Model type {model_type} is not recognized.")
 
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         criterion = nn.CrossEntropyLoss()
