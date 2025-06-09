@@ -7,7 +7,7 @@ import torchaudio
 class LSTMModel(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
         super(LSTMModel, self).__init__()
-        self.name = "LSTM"
+        self.name = "MFCC+LSTM"
 
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True, dropout=0.1)
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -46,58 +46,10 @@ class CNNBlock(nn.Module):
 
     def forward(self, x):
         # x.shape = [batch_size, in_channels, time] = [batch_size, 1, 6615]
-        # print(f"input size: [{x.shape}]")
-
         x = self.cnn(x)
-        # print(f"CNN : [{x.shape}]")
-
-        x = F.relu(x)
-
         x = self.bn(x)
-        # print(f"batch norm: [{x.shape}]")
-
-        x = self.pool(x)
-        # print(f"max pooling size: [{x.shape}]")
-
-        return x
-
-    def _initialize_weights(self):
-        """He initialize implement"""
-        # init.xavier_uniform_(self.cnn.weight)
-        init.kaiming_normal_(self.cnn.weight, nonlinearity='relu')
-
-        if self.cnn.bias is not None:
-            init.zeros_(self.cnn.bias)
-
-class CNNBlock_test(nn.Module):
-    def __init__(self, in_ch, out_ch, kernel_size, stride, pad):
-        super(CNNBlock_test, self).__init__()
-        self.cnn = nn.Conv1d(
-            in_channels=in_ch,
-            out_channels=out_ch,
-            kernel_size=kernel_size,
-            stride=stride,
-            padding=pad
-        )
-        self.bn = nn.BatchNorm1d(out_ch)
-        self.pool = nn.MaxPool1d(kernel_size=4, stride=4)
-        self._initialize_weights()
-
-    def forward(self, x):
-        # x.shape = [batch_size, in_channels, time] = [batch_size, 1, 6615]
-        # print(f"input size: [{x.shape}]")
-
-        x = self.cnn(x)
-        # print(f"CNN : [{x.shape}]")
-
-        x = self.bn(x)
-        # print(f"batch norm: [{x.shape}]")
-
         x = F.relu(x)
-
         x = self.pool(x)
-        # print(f"max pooling size: [{x.shape}]")
-
         return x
 
     def _initialize_weights(self):
@@ -109,97 +61,8 @@ class CNNBlock_test(nn.Module):
             init.zeros_(self.cnn.bias)
 
 class CNNFeatureExtractor(nn.Module):
-    def __init__(self):
+    def __init__(self, kernel_init=80):
         super(CNNFeatureExtractor, self).__init__()
-        self.cnnBlock1 = CNNBlock(in_ch=1, out_ch=64, kernel_size=80, stride=4, pad=0)
-        self.cnnBlock2 = CNNBlock(in_ch=64, out_ch=64, kernel_size=3, stride=1, pad=0)
-        self.cnnBlock3 = CNNBlock(in_ch=64, out_ch=128, kernel_size=3, stride=1, pad=0)
-
-    def forward(self, x):
-        # x.shape = [batch_size, in_channels, time] = [batch_size, 1, 6615]
-        # print(f"CNN FE input size: [{x.shape}]")
-        # print("1st CNN layer")
-        x = self.cnnBlock1(x)
-
-        # print("2nd CNN layer")
-        x = self.cnnBlock2(x)
-
-        # print("3rd CNN layer")
-        x = self.cnnBlock3(x)
-        return x
-
-class CNNFeatureExtractor_test(nn.Module):
-    def __init__(self):
-        super(CNNFeatureExtractor_test, self).__init__()
-        self.cnnBlock1 = CNNBlock(in_ch=1, out_ch=64, kernel_size=160, stride=4, pad=0)
-        self.cnnBlock2 = CNNBlock(in_ch=64, out_ch=64, kernel_size=3, stride=1, pad=0)
-        self.cnnBlock3 = CNNBlock(in_ch=64, out_ch=128, kernel_size=3, stride=1, pad=0)
-
-    def forward(self, x):
-        # x.shape = [batch_size, in_channels, time] = [batch_size, 1, 6615]
-        # print("1st CNN layer")
-        x = self.cnnBlock1(x)
-
-        # print("2nd CNN layer")
-        x = self.cnnBlock2(x)
-
-        # print("3rd CNN layer")
-        x = self.cnnBlock3(x)
-        return x
-
-class CNNFeatureExtractor_CRNN8(nn.Module):
-    def __init__(self):
-        super(CNNFeatureExtractor_CRNN8, self).__init__()
-        self.block1 = CNNBlock(in_ch=1, out_ch=64, kernel_size=80, stride=4, pad=0)  # C(64, 80/4)
-        self.block2 = CNNBlock(in_ch=64, out_ch=64, kernel_size=3, stride=1, pad=1)  # C(64, 3)
-        self.block3 = nn.Sequential(
-            CNNBlock(in_ch=64, out_ch=128, kernel_size=3, stride=1, pad=1),
-            CNNBlock(in_ch=128, out_ch=128, kernel_size=3, stride=1, pad=1),
-            CNNBlock(in_ch=128, out_ch=128, kernel_size=3, stride=1, pad=1),
-        )
-        self.block4 = nn.Sequential(
-            CNNBlock(in_ch=128, out_ch=256, kernel_size=3, stride=1, pad=1),
-            CNNBlock(in_ch=256, out_ch=256, kernel_size=3, stride=1, pad=1),
-        )
-        self.block5 = nn.Sequential(
-            CNNBlock(in_ch=256, out_ch=512, kernel_size=3, stride=1, pad=1),
-            CNNBlock(in_ch=512, out_ch=512, kernel_size=3, stride=1, pad=1),
-        )
-
-    def forward(self, x):
-        x = self.block1(x)
-        x = self.block2(x)
-        x = self.block3(x)
-        x = self.block4(x)
-        x = self.block5(x)
-        return x
-
-class CNNFeatureExtractor_multi(nn.Module):
-    def __init__(self, kernel_init):
-        super(CNNFeatureExtractor_multi, self).__init__()
-        self.cnnBlock1 = CNNBlock(in_ch=1, out_ch=64, kernel_size=kernel_init, stride=4, pad=0)
-        self.cnnBlock2 = CNNBlock(in_ch=64, out_ch=64, kernel_size=3, stride=1, pad=0)
-        self.cnnBlock3 = CNNBlock(in_ch=64, out_ch=128, kernel_size=3, stride=1, pad=0)
-        self.cnnBlock4 = CNNBlock(in_ch=128, out_ch=256, kernel_size=3, stride=1, pad=0)
-
-    def forward(self, x):
-        # x.shape = [batch_size, in_channels, time] = [batch_size, 1, 6615]
-        # print("1st CNN layer")
-        x = self.cnnBlock1(x)
-
-        # print("2nd CNN layer")
-        x = self.cnnBlock2(x)
-
-        # print("3rd CNN layer")
-        x = self.cnnBlock3(x)
-
-        x = self.cnnBlock4(x)
-
-        return x
-
-class CNNFeatureExtractor_Mel(nn.Module):
-    def __init__(self, kernel_init):
-        super(CNNFeatureExtractor_Mel, self).__init__()
         self.cnnBlock1 = CNNBlock(in_ch=1, out_ch=40, kernel_size=kernel_init, stride=4, pad=0)
         self.cnnBlock2 = CNNBlock(in_ch=40, out_ch=40, kernel_size=3, stride=1, pad=0)
         self.cnnBlock3 = CNNBlock(in_ch=40, out_ch=128, kernel_size=3, stride=1, pad=0)
@@ -207,15 +70,10 @@ class CNNFeatureExtractor_Mel(nn.Module):
 
     def forward(self, x):
         # x.shape = [batch_size, in_channels, time] = [batch_size, 1, 6615]
-        # print("1st CNN layer")
+        # print(f"CNN FE input size: [{x.shape}]")
         x = self.cnnBlock1(x)
-
-        # print("2nd CNN layer")
         x = self.cnnBlock2(x)
-
-        # print("3rd CNN layer")
         x = self.cnnBlock3(x)
-
         x = self.cnnBlock4(x)
 
         return x
@@ -254,155 +112,83 @@ def initialize_mel_filter(conv_layer, sr, kernel_size, n_filters):
         # conv_layer.weight.requires_grad = False  # 학습 중 가중치 고정
         conv_layer.weight.requires_grad = True  # 학습 중 가중치 갱신
 
-class CLSTM_3(nn.Module):
+class B2_small(nn.Module):
+    '''
+    SingleScale_layer4_small
+    '''
     def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
-        """
-        Args:
-            output_dim (int): 최종 출력 차원 (클래스 개수 등)
-            input_dim (int): LSTM에 입력되는 feature 차원
-            hidden_dim (int): LSTM 은닉 상태 차원
-            num_layers (int): LSTM 층 수
-        """
-        super(CLSTM_3, self).__init__()
-        self.name = "CLSTM_3"
+        super(B2_small, self).__init__()
+        self.name = "SingleScale CNN-small"
 
-        # 별도의 CNN feature 추출기
-        self.feature_extractor = CNNFeatureExtractor()
-
-        # LSTM
+        self.feature_extractor = CNNFeatureExtractor(kernel_init=64)
         self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True, dropout=0.1)
-
-        # 최종 완전연결 레이어
         self.fc = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
         # x.shape = [batch_size, 1, 6615]
-        # 1) CNN을 통해 특징 맵 추출
         x = self.feature_extractor(x)
-        # x.shape 예) [batch_size, 128, new_time_length]
-
-        # 2) [batch, channel, time] → [batch, time, channel]
         x = x.transpose(1, 2)
-
-        # 3) LSTM
         lstm_out, _ = self.lstm(x)  # lstm_out.shape = [batch_size, new_time_length, hidden_dim]
-
-        # 4) 마지막 타임스텝 벡터만 추출
         x = lstm_out[:, -1, :]  # [batch_size, hidden_dim]
 
-        # 5) FC를 통한 최종 출력
-        out = self.fc(x)
-
-        return out
-
-class C_test(nn.Module):
-    def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
-        """
-        Args:
-            output_dim (int): 최종 출력 차원 (클래스 개수 등)
-            input_dim (int): LSTM에 입력되는 feature 차원
-            hidden_dim (int): LSTM 은닉 상태 차원
-            num_layers (int): LSTM 층 수
-        """
-        super(C_test, self).__init__()
-        self.name = "C_test"
-
-        # 별도의 CNN feature 추출기
-        self.feature_extractor = CNNFeatureExtractor_test()
-
-        # LSTM
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True, dropout=0.1)
-
-        # 최종 완전연결 레이어
-        self.fc = nn.Linear(hidden_dim, output_dim)
-
-    def forward(self, x):
-        # x.shape = [batch_size, 1, 6615]
-        # 1) CNN을 통해 특징 맵 추출
-        x = self.feature_extractor(x)
-        # x.shape 예) [batch_size, 128, new_time_length]
-
-        # 2) [batch, channel, time] → [batch, time, channel]
-        x = x.transpose(1, 2)
-
-        # 3) LSTM
-        lstm_out, _ = self.lstm(x)  # lstm_out.shape = [batch_size, new_time_length, hidden_dim]
-
-        # 4) 마지막 타임스텝 벡터만 추출
-        x = lstm_out[:, -1, :]  # [batch_size, hidden_dim]
-
-        # 5) FC를 통한 최종 출력
-        out = self.fc(x)
-
-        return out
-
-class C_CRNN8(nn.Module):
-    def __init__(self, output_dim, hidden_dim=128, num_layers=1):
-        super(C_CRNN8, self).__init__()
-        self.name = "C_CRNN8"
-        self.feature_extractor = CNNFeatureExtractor_CRNN8()
-        self.lstm = nn.LSTM(input_size=512, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, dropout=0.1)
-        self.fc = nn.Linear(hidden_dim, output_dim)
-
-    def forward(self, x):
-        x = self.feature_extractor(x)       # [B, 512, T]
-        x = x.transpose(1, 2)               # [B, T, 512]
-        lstm_out, _ = self.lstm(x)          # [B, T, H]
-        x = lstm_out[:, -1, :]              # [B, H]
         return self.fc(x)
 
-class C_MultiScale_1st(nn.Module):
-    def __init__(self, output_dim, hidden_dim=128, num_layers=1):
-        super(C_MultiScale_1st, self).__init__()
-        self.name="C-MultiScale"
+class B2_middle(nn.Module):
+    '''
+    SingleScale_layer4_middle
+    '''
 
-        # 1. multi scale CNN blocks
-        self.cnnBlock_1_small = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=44, stride=1, pad=0)      # 10ms
-        self.cnnBlock_1_medium = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=220, stride=1, pad=0)    # 50ms
-        self.cnnBlock_1_large = CNNBlock_test(in_ch=1, out_ch=64, kernel_size=441, stride=1, pad=5)     # 100ms
+    def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
+        super(B2_middle, self).__init__()
+        self.name = "SingleScale CNN-middle"
 
-        # # 2. Feature projection
-        # self.cnnBlock_2_small = CNNBlock_test(in_ch=64, out_ch=128, kernel_size=44, stride=4, pad=0)  # 10ms
-        # self.cnnBlock_2_medium = CNNBlock_test(in_ch=64, out_ch=128, kernel_size=, stride=4, pad=0)  # 10ms
-        # self.cnnBlock_2_large = CNNBlock_test(in_ch=64, out_ch=128, kernel_size=44, stride=4, pad=0)  # 10ms
-
-        # Attention after concat
-        self.attention = AttentionModule(64*3)
-
-        self.lstm = nn.LSTM(input_size=64*3, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, dropout=0.1)
+        self.feature_extractor = CNNFeatureExtractor(kernel_init=256)
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True, dropout=0.1)
         self.fc = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
-        s = self.cnnBlock_1_small(x)
-        m = self.cnnBlock_1_medium(x)
-        l = self.cnnBlock_1_large(x)
+        # x.shape = [batch_size, 1, 6615]
+        x = self.feature_extractor(x)
+        x = x.transpose(1, 2)
+        lstm_out, _ = self.lstm(x)  # lstm_out.shape = [batch_size, new_time_length, hidden_dim]
+        x = lstm_out[:, -1, :]  # [batch_size, hidden_dim]
 
-        min_time = min(s.shape[2], m.shape[2], l.shape[2])
-        s = s[:, :, :min_time]
-        m = m[:, :, :min_time]
-        l = l[:, :, :min_time]
+        return self.fc(x)
 
-        combined = torch.cat([s,m,l], dim=1)
-        combined = combined.transpose(1,2)
+class B2_large(nn.Module):
+    '''
+    SingleScale_layer4_large
+    '''
 
-        combined = self.attention(combined)
+    def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
+        super(B2_large, self).__init__()
+        self.name = "SingleScale CNN-large"
 
-        lstm_out, _ = self.lstm(combined)  # [B, T, H]
-        out = lstm_out[:, -1, :]  # [B, H]
-        return self.fc(out)
+        self.feature_extractor = CNNFeatureExtractor(kernel_init=4096)
+        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True, dropout=0.1)
+        self.fc = nn.Linear(hidden_dim, output_dim)
 
-class C_MultiScale_2nd(nn.Module):
-    def __init__(self, output_dim, hidden_dim=128, num_layers=1):
-        super(C_MultiScale_2nd, self).__init__()
-        self.name="C-MultiScale-deep-layer4"
+    def forward(self, x):
+        # x.shape = [batch_size, 1, 6615]
+        x = self.feature_extractor(x)
+        x = x.transpose(1, 2)
+        lstm_out, _ = self.lstm(x)  # lstm_out.shape = [batch_size, new_time_length, hidden_dim]
+        x = lstm_out[:, -1, :]  # [batch_size, hidden_dim]
+
+        return self.fc(x)
+
+class B3(nn.Module):
+    '''
+    B3 : Multiscale with no Mel initialization, no attention
+    '''
+    def __init__(self, output_dim, hidden_dim=128, num_layers=2):
+        super(B3, self).__init__()
+        self.name="MultiScale (Kaiming)"
 
         # 1. multi scale CNN blocks
-        self.feature_small = CNNFeatureExtractor_multi(kernel_init=44)
-        self.feature_medium = CNNFeatureExtractor_multi(kernel_init=220)
-        self.feature_large = CNNFeatureExtractor_multi(kernel_init=441)
-
-        # Attention after concat
-        self.attention = AttentionModule(256*3)
+        self.feature_small = CNNFeatureExtractor(kernel_init=64)
+        self.feature_medium = CNNFeatureExtractor(kernel_init=256)
+        self.feature_large = CNNFeatureExtractor(kernel_init=4096)
 
         self.lstm = nn.LSTM(input_size=256*3, hidden_size=hidden_dim, num_layers=num_layers, batch_first=True, dropout=0.1)
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -420,25 +206,59 @@ class C_MultiScale_2nd(nn.Module):
         combined = torch.cat([s,m,l], dim=1)
         combined = combined.transpose(1,2)
 
-        combined = self.attention(combined)
-
         lstm_out, _ = self.lstm(combined)  # [B, T, H]
         out = lstm_out[:, -1, :]  # [B, H]
         return self.fc(out)
 
-class C_MultiScale_3rd(nn.Module):
-    def __init__(self, output_dim, hidden_dim=128, num_layers=1, sr=44100):
-        super(C_MultiScale_3rd, self).__init__()
-        self.name="C-MultiScale-deep-mel-init"
+class B4(nn.Module):
+    '''
+    B4 : Multiscale with Mel initialization, no attention
+    '''
+    def __init__(self, output_dim, hidden_dim=128, num_layers=2, sr=44100):
+        super(B4, self).__init__()
+        self.name="MultiScale+Mel init"
 
-        self.feature_small = CNNFeatureExtractor_Mel(kernel_init=44)
-        self.feature_medium = CNNFeatureExtractor_Mel(kernel_init=220)
-        self.feature_large = CNNFeatureExtractor_Mel(kernel_init=441)
+        self.feature_small = CNNFeatureExtractor(kernel_init=64)
+        self.feature_medium = CNNFeatureExtractor(kernel_init=256)
+        self.feature_large = CNNFeatureExtractor(kernel_init=4096)
 
-        # Mel filter 초기화 (예: small only)
-        # initialize_mel_filter(self.feature_small.cnnBlock1.cnn, sr=sr, kernel_size=44, n_filters=40)
-        initialize_mel_filter(self.feature_medium.cnnBlock1.cnn, sr=sr, kernel_size=220, n_filters=40)
-        initialize_mel_filter(self.feature_large.cnnBlock1.cnn, sr=sr, kernel_size=441, n_filters=40)
+        # Mel filter 초기화
+        initialize_mel_filter(self.feature_medium.cnnBlock1.cnn, sr=sr, kernel_size=256, n_filters=40)
+        initialize_mel_filter(self.feature_large.cnnBlock1.cnn, sr=sr, kernel_size=4096, n_filters=40)
+
+        self.lstm = nn.LSTM(input_size=256 * 3, hidden_size=hidden_dim,
+                            num_layers=num_layers, batch_first=True, dropout=0.1)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+        s = self.feature_small(x)
+        m = self.feature_medium(x)
+        l = self.feature_large(x)
+
+        min_time = min(s.shape[2], m.shape[2], l.shape[2])
+        s, m, l = s[:, :, :min_time], m[:, :, :min_time], l[:, :, :min_time]
+
+        combined = torch.cat([s, m, l], dim=1).transpose(1, 2)
+
+        lstm_out, _ = self.lstm(combined)
+        out = self.fc(lstm_out[:, -1, :])
+        return out
+
+class P(nn.Module):
+    '''
+    Proposed Model
+    '''
+    def __init__(self, output_dim, hidden_dim=128, num_layers=2, sr=44100):
+        super(P, self).__init__()
+        self.name="Proposed Model"
+
+        self.feature_small = CNNFeatureExtractor(kernel_init=64)
+        self.feature_medium = CNNFeatureExtractor(kernel_init=256)
+        self.feature_large = CNNFeatureExtractor(kernel_init=4096)
+
+        # Mel filter 초기화
+        initialize_mel_filter(self.feature_medium.cnnBlock1.cnn, sr=sr, kernel_size=256, n_filters=40)
+        initialize_mel_filter(self.feature_large.cnnBlock1.cnn, sr=sr, kernel_size=4096, n_filters=40)
 
         self.attention = AttentionModule(256 * 3)
         self.lstm = nn.LSTM(input_size=256 * 3, hidden_size=hidden_dim,
@@ -458,69 +278,4 @@ class C_MultiScale_3rd(nn.Module):
 
         lstm_out, _ = self.lstm(combined)
         out = self.fc(lstm_out[:, -1, :])
-        return out
-
-class C_MultiScale_4th(nn.Module):
-    def __init__(self, output_dim, hidden_dim=128, num_layers=2, sr=44100):
-        super(C_MultiScale_4th, self).__init__()
-        self.name="C-MultiScale-deep-mel-init"
-
-        # self.feature_small = CNNFeatureExtractor_Mel(kernel_init=44)
-        self.feature_small = CNNFeatureExtractor_Mel(kernel_init=80)
-        # self.feature_large = CNNFeatureExtractor_Mel(kernel_init=441)
-        self.feature_large = CNNFeatureExtractor_Mel(kernel_init=1024)
-
-        # Mel filter 초기화 (예: small only)
-        # initialize_mel_filter(self.feature_small.cnnBlock1.cnn, sr=sr, kernel_size=44, n_filters=40)
-        # initialize_mel_filter(self.feature_large.cnnBlock1.cnn, sr=sr, kernel_size=441, n_filters=40)
-        initialize_mel_filter(self.feature_large.cnnBlock1.cnn, sr=sr, kernel_size=1024, n_filters=40)
-
-        self.attention = AttentionModule(256 * 2)
-        self.lstm = nn.LSTM(input_size=256 * 2, hidden_size=hidden_dim,
-                            num_layers=num_layers, batch_first=True, dropout=0.1)
-        self.fc = nn.Linear(hidden_dim, output_dim)
-
-    def forward(self, x):
-        s = self.feature_small(x)
-        l = self.feature_large(x)
-
-        min_time = min(s.shape[2], l.shape[2])
-        s, l = s[:, :, :min_time],l[:, :, :min_time]
-
-        combined = torch.cat([s, l], dim=1).transpose(1, 2)
-        combined = self.attention(combined)
-
-        lstm_out, _ = self.lstm(combined)
-        out = self.fc(lstm_out[:, -1, :])
-        return out
-
-class CRNN_3(nn.Module):
-    def __init__(self, output_dim, input_dim=128, hidden_dim=128, num_layers=2):
-        super(CRNN_3, self).__init__()
-        self.name = "CRNN_3"
-
-        # 별도의 CNN feature 추출기
-        self.feature_extractor = CNNFeatureExtractor()
-
-        self.rnn = nn.RNN(input_dim, hidden_dim, num_layers, batch_first=True, dropout=0.1)  # 여기의 input_dim은 pool2에서 나오는 크기여야 함!!!
-        self.fc = nn.Linear(hidden_dim, output_dim)
-
-    def forward(self, x):
-        # x.shape = [batch_size, 1, 6615]
-        # 1) CNN을 통해 특징 맵 추출
-        x = self.feature_extractor(x)
-        # x.shape 예) [batch_size, 128, new_time_length]
-
-        # 2) [batch, channel, time] → [batch, time, channel]
-        x = x.transpose(1, 2)
-
-        rnn_out, _ = self.rnn(x)
-        # print("After RNN:", rnn_out.shape)
-
-        x = rnn_out[:, -1, :]
-        # print("After selecting last timestep:", x.shape)
-
-        out = self.fc(x)
-        # print("Final output:", out.shape)
-
         return out
