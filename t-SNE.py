@@ -34,17 +34,28 @@ logger.info(f'MODEL path: {cfg.PATH.MODEL_PATH}')
 
 if __name__ == '__main__':
     model = None
-    # (1) 학습된 모델의 CNN layer 에서 가중치 추출
-    if cfg.HYPERPARAMS.MODELTYPE == 'C-LSTM':
-        model = CLSTM_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-RNN':
-        model = CRNN_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-test':
-        model = C_test(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-MultiScale':
-        # model = C_MultiScale_1st(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        # model = C_MultiScale_2nd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        model = C_MultiScale_3rd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    model_type = cfg.HYPERPARAMS.MODELTYPE
+
+    # 모델 선택
+    if model_type == 'B1':
+        model = B1(input_dim=40, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                   num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                   output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B2-small':
+        model = B2_small(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B2-middle':
+        model = B2_middle(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B2-large':
+        model = B2_large(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B3':
+        model = B3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B4':
+        model = B4(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'P':
+        model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        # model = P2(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    else:
+        raise ValueError(f"Model type {model_type} is not recognized.")
 
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))

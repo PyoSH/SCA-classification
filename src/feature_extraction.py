@@ -106,13 +106,7 @@ CRNN 모델의 합성곱 필터 학습이 어떻게 되었는지 확인하는 �
 2025_02_26
 '''
 def viz_filter_map(model, section, layer_type, idx_ch, sampling_rate):
-    cnn_block = None
-    if model.name == 'C-test':
-        cnn_block = getattr(model.feature_extractor, section)
-    elif model.name == 'C-MultiScale':
-        cnn_block = getattr(model, section)
-    elif 'C-MultiScale-deep' in model.name:
-        cnn_block = getattr(model, section).cnnBlock1
+    cnn_block = getattr(model, section).cnnBlock1
 
     layer = getattr(cnn_block, layer_type)
 
@@ -168,7 +162,8 @@ def viz_filter_map(model, section, layer_type, idx_ch, sampling_rate):
     else: ch_str = str(idx_ch)
     prefix = os.path.join('pics', 'CNN', 'weight','ordered')
     file_name_str = f'{section}_{ch_str}.png'
-    plt.savefig(os.path.join(prefix, file_name_str))
+    # plt.savefig(os.path.join(prefix, file_name_str))
+    plt.show()
 
     return sorted_idx
 
@@ -243,44 +238,27 @@ def extract_feature_embeddings(model, dataloader, device):
 
             x = None
 
-            if model.name == 'C-MultiScale':
-                ## AMS-CNN 최종 출력 임베딩
-                # Forward pass through the model
-                s = model.cnnBlock_1_small(inputs)
-                m = model.cnnBlock_1_medium(inputs)
-                l = model.cnnBlock_1_large(inputs)
+            if 'B2' in model.name:
+                x = model.feature_extractor(inputs)
 
-                x = m
-
-                # # Make sure the time dimension is consistent
-                # min_time = min(s.shape[2], m.shape[2], l.shape[2])
-                # s = s[:, :, :min_time]
-                # m = m[:, :, :min_time]
-                # l = l[:, :, :min_time]
-
-                # # Concatenate the outputs from all the branches
-                # combined = torch.cat([s, m, l], dim=1)
-                # combined = combined.transpose(1, 2)  # [batch_size, time_steps, channels]
-                # x = model.attention(combined)
-
-            elif 'C-MultiScale-deep' in model.name:
+            elif model.name == 'P':
                 s = model.feature_small(inputs)
                 m = model.feature_medium(inputs)
                 l = model.feature_large(inputs)
 
-                x = l
+                # x = l
 
-                # # Make sure the time dimension is consistent
-                # min_time = min(s.shape[2], m.shape[2], l.shape[2])
-                # s = s[:, :, :min_time]
-                # m = m[:, :, :min_time]
-                # l = l[:, :, :min_time]
+                # Make sure the time dimension is consistent
+                min_time = min(s.shape[2], m.shape[2], l.shape[2])
+                s = s[:, :, :min_time]
+                m = m[:, :, :min_time]
+                l = l[:, :, :min_time]
 
                 # Concatenate the outputs from all the branches
-                # combined = torch.cat([s, m, l], dim=1)
-                # combined = combined.transpose(1, 2)  # [batch_size, time_steps, channels]
-                # x = model.attention(combined)
-                # x = combined
+                combined = torch.cat([s, m, l], dim=1)
+                combined = combined.transpose(1, 2)  # [batch_size, time_steps, channels]
+                x = model.attention(combined)
+                x = combined
 
             elif model.name == 'C_test':
                 ## CNN 최종 출력 임베딩

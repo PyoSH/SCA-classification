@@ -13,14 +13,14 @@ from loguru import logger
 import time
 
 # 디바이스 설정: Apple Silicon의 MPS, CUDA, 또는 CPU
-device = None
-if torch.backends.mps.is_available():
-    device = torch.device("mps")
-elif torch.cuda.is_available():
-    device = torch.device("cuda")
-    logger.info(f'GPU device found: {torch.cuda.get_device_name(0)}')
-else:
-    device = torch.device("cpu")
+device = torch.device("cuda")
+# if torch.backends.mps.is_available():
+#     device = torch.device("mps")
+# elif torch.cuda.is_available():
+#     device = torch.device("cuda")
+#     logger.info(f'GPU device found: {torch.cuda.get_device_name(0)}')
+# else:
+#     device = torch.device("cpu")
 # device = torch.device("cpu")
 logger.info(f'selected device: {device}')
 
@@ -48,28 +48,34 @@ class_labels = cfg.HYPERPARAMS.LABEL_CLASS
 
 if __name__ == '__main__':
     model = None
-    # 학습된 모델 불러오기
-    if cfg.HYPERPARAMS.MODELTYPE == 'RNN':
-        model = RNNModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
-                         num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
-                         output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'LSTM':
-        model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
-                          num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
-                          output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-RNN':
-        model = CRNN_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-LSTM':
-        model = CLSTM_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-MultiScale':
-        model = C_MultiScale_1st(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    model_type = cfg.HYPERPARAMS.MODELTYPE
 
-    is_HybridModel = (cfg.HYPERPARAMS.MODELTYPE[0] == 'C')
+    # 학습된 모델 불러오기
+    if model_type == 'B1':
+        model = B1(input_dim=40, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                   num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                   output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B2-small':
+        model = B2_small(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B2-middle':
+        model = B2_middle(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B2-large':
+        model = B2_large(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B3':
+        model = B3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B4':
+        model = B4(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'P':
+        model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    else:
+        raise ValueError(f"Model type {model_type} is not recognized.")
+
+    is_HybridModel = True
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
     model.eval()
 
-    data_raw = np.load(cfg.PATH.TEST_PATH)
+    data_raw = np.load(cfg.PATH.INSPECTION_PATH)
     data_audio = data_raw[:, 0:-1]
     data_label = data_raw[:, -1]
     data_audio_std = deepcopy(data_audio)

@@ -312,3 +312,36 @@ class P(nn.Module):
         lstm_out, _ = self.lstm(combined)
         out = self.fc(lstm_out[:, -1, :])
         return out
+
+class P2(nn.Module):
+    '''
+    Proposed Model
+    '''
+    def __init__(self, output_dim, hidden_dim=128, num_layers=2, sr=44100):
+        super(P2, self).__init__()
+        self.name="P"
+
+        self.feature_small = CNNFeatureExtractor(kernel_init=64)
+        self.feature_medium = CNNFeatureExtractor(kernel_init=256)
+
+        # Mel filter 초기화
+        initialize_mel_filter(self.feature_medium.cnnBlock1.cnn, sr=sr, kernel_size=256, n_filters=40)
+
+        self.attention = AttentionModule(256 * 2)
+        self.lstm = nn.LSTM(input_size=256 * 2, hidden_size=hidden_dim,
+                            num_layers=num_layers, batch_first=True, dropout=0.1)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+        s = self.feature_small(x)
+        m = self.feature_medium(x)
+
+        min_time = min(s.shape[2], m.shape[2])
+        s, m = s[:, :, :min_time], m[:, :, :min_time]
+
+        combined = torch.cat([s, m], dim=1).transpose(1, 2)
+        combined = self.attention(combined)
+
+        lstm_out, _ = self.lstm(combined)
+        out = self.fc(lstm_out[:, -1, :])
+        return out
