@@ -6,7 +6,7 @@ PATH:
   SAMPLES_PATH: ./data/dataset/samples/uw_samples_44kHz_100ms_all.npy
   INSPECTION_PATH: ./data/dataset/inspection/uw_44kHz_100ms_cutting.npy
 
-  MODEL_PATH: ./results/exp/B2_large_fold5.pth #this model will be made in path
+  MODEL_PATH: ./results/exp/B2_large_fold1.pth #this model will be made in path
 HYPERPARAMS:
   MODELTYPE: 'B2-large'
   HIDDEN_SIZE: 128

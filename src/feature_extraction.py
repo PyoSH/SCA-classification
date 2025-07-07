@@ -241,12 +241,26 @@ def extract_feature_embeddings(model, dataloader, device):
             if 'B2' in model.name:
                 x = model.feature_extractor(inputs)
 
-            elif model.name == 'P':
+            elif model.name == 'B3' or 'B4':
                 s = model.feature_small(inputs)
                 m = model.feature_medium(inputs)
                 l = model.feature_large(inputs)
 
-                # x = l
+                # Make sure the time dimension is consistent
+                min_time = min(s.shape[2], m.shape[2], l.shape[2])
+                s = s[:, :, :min_time]
+                m = m[:, :, :min_time]
+                l = l[:, :, :min_time]
+
+                # Concatenate the outputs from all the branches
+                combined = torch.cat([s, m, l], dim=1)
+                combined = combined.transpose(1, 2)  # [batch_size, time_steps, channels]
+                x = combined
+
+            elif model.name == 'P':
+                s = model.feature_small(inputs)
+                m = model.feature_medium(inputs)
+                l = model.feature_large(inputs)
 
                 # Make sure the time dimension is consistent
                 min_time = min(s.shape[2], m.shape[2], l.shape[2])
