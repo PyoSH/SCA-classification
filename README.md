@@ -3,4 +3,4 @@
 2025 RA-L (in submission)
 
 ### Real World Application
-To use this model in the CPOS project, I made an [simple socket comm(with ROS) & prediction program]([url](https://github.com/PyoSH/realtime_audio_classification_ros)). 
+To use this model in the CPOS project, I made an [simple socket comm(with ROS) & prediction program]([urlhttps://github.com/PyoSH/realtime_audio_classification_ros]). 
