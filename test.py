@@ -13,14 +13,15 @@ from copy import deepcopy
 
 # 디바이스 설정: Apple Silicon의 MPS, CUDA, 또는 CPU
 device = None
-if torch.backends.mps.is_available():
-    device = torch.device("mps")
-elif torch.cuda.is_available():
-    device = torch.device("cuda")
-    logger.info(f'GPU device found: {torch.cuda.get_device_name(0)}')
-else:
-    device = torch.device("cpu")
-# device = torch.device("cpu")
+# if torch.backends.mps.is_available():
+#     device = torch.device("mps")
+# elif torch.cuda.is_available():
+#     device = torch.device("cuda")
+#     logger.info(f'GPU device found: {torch.cuda.get_device_name(0)}')
+# else:
+#     device = torch.device("cpu")
+device = torch.device("cpu")
+# device = torch.device("cuda")
 logger.info(f'selected device: {device}')
 
 parser = argparse.ArgumentParser(description='Running audio classification')
@@ -66,8 +67,8 @@ if __name__ == '__main__':
     elif model_type == 'B4':
         model = B4(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
     elif model_type == 'P':
-        # model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        model = P2(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        # model = P2(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
     else:
         raise ValueError(f"Model type {model_type} is not recognized.")
 

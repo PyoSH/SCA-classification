@@ -59,23 +59,24 @@ if __name__ == '__main__':
 
 
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
-
+    total_params = sum(p.numel() for p in model.parameters())
+    print(total_params)
     # data load
-    data_raw = np.load(cfg.PATH.SAMPLES_PATH)
-    data_audio = data_raw[:, 0:-1]
-    data_label = data_raw[:, -1]
-    data_audio_std = np.zeros_like(data_audio)
-
-    # audio standardization to mean 0, variance 1
-    for i, row in enumerate(data_audio):
-        row_std = (row - np.mean(row)) / np.std(row)
-        data_audio_std[i, :] = row
-
-    rawDataset = RawWaveformDataset(data_audio_std, data_label)
-    data_loader = DataLoader(rawDataset, batch_size=1, shuffle=False)
-
-    features, labels, indices = extract_feature_embeddings(model=model, dataloader=data_loader, device=device)
-    
-    plot_tsne(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
+    # data_raw = np.load(cfg.PATH.SAMPLES_PATH)
+    # data_audio = data_raw[:, 0:-1]
+    # data_label = data_raw[:, -1]
+    # data_audio_std = np.zeros_like(data_audio)
+    #
+    # # audio standardization to mean 0, variance 1
+    # for i, row in enumerate(data_audio):
+    #     row_std = (row - np.mean(row)) / np.std(row)
+    #     data_audio_std[i, :] = row
+    #
+    # rawDataset = RawWaveformDataset(data_audio_std, data_label)
+    # data_loader = DataLoader(rawDataset, batch_size=1, shuffle=False)
+    #
+    # features, labels, indices = extract_feature_embeddings(model=model, dataloader=data_loader, device=device)
+    #
+    # plot_tsne(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
     # plot_tsne_3d(features, data_label, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
     # plot_tsne_interactive(features, labels, indices, class_names=cfg.HYPERPARAMS.LABEL_CLASS)
