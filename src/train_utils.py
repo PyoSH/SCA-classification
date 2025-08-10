@@ -12,6 +12,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 from loguru import logger
 from datetime import datetime
+from matplotlib.animation import FuncAnimation
 
 def evaluate_model(model, test_loader):
     model.eval()
@@ -96,7 +97,8 @@ def eval_metrics_device(model, test_loader, classes, device):
                 y_trues = np.concatenate((y_trues, labels_np), axis=0)
                 y_preds = np.concatenate((y_preds, pred_np), axis=0)
 
-    plot_comparison(model.name, y_trues, y_preds, classes=classes)
+    # plot_comparison(model.name, y_trues, y_preds, classes=classes)
+    animate_comparison(model.name, y_trues, y_preds, classes=classes, out_path='B2_small_comp.mp4', fps=10)
     plot_cm(model.name, y_trues, y_preds, classes=classes)
 
     return metrics.classification_report(y_trues, y_preds, zero_division=0)
@@ -184,6 +186,72 @@ def plot_comparison(model_type, y_ts, y_ps, classes, show='True'):
 
     plt.tight_layout()
     plt.show()
+
+from matplotlib.ticker import MaxNLocator
+
+def animate_comparison(model_type, y_ts, y_ps, classes, out_path="comparison.mp4", fps=15):
+    x = np.arange(len(y_ts))
+
+    # 색/라벨 매핑
+    style_map = {
+        'B1':        ("#1f77b4", "B1"),
+        'B2-small':  ("#ff7f0e", "B2-small"),
+        'B2-middle': ("#2ca02c", "B2-middle"),
+        'B2-large':  ("#d62728", "B2-large"),
+        'B3':        ("#9467bd", "B3"),
+        'B4':        ("#8c564b", "B4"),
+        'P':         ("#e377c2", "Proposed"),
+    }
+    pred_color, pred_label = style_map.get(model_type, ("#1f77b4", model_type))
+
+    # Figure & Axis (하나만)
+    fig, ax = plt.subplots(figsize=(12, 4))
+    ax.set_xlim(0, len(x) - 1)
+    ax.set_ylim(-0.5, len(classes) - 0.5)
+    ax.set_yticks(np.arange(len(classes)))
+    ax.set_yticklabels(classes)
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.set_xlabel('Audio frame')
+    ax.set_ylabel('Operational situation')
+    ax.set_title(f'Model output: {pred_label}')
+
+    # Prediction 라인
+    (pred_line,) = ax.plot([], [], color=pred_color, linewidth=1,
+                           label=pred_label, drawstyle='steps-post')
+
+    # 현재 프레임 표시선(선택사항)
+    (cursor,) = ax.plot([], [], 'k--', alpha=0.3)
+
+    ax.legend(loc='upper left')
+
+    def init():
+        pred_line.set_data([], [])
+        cursor.set_data([], [])
+        return pred_line, cursor
+
+    def update(frame):
+        # 모델 예측 누적 표시
+        pred_line.set_data(x[:frame + 1], y_ps[:frame + 1])
+        cursor.set_data([frame, frame], [ax.get_ylim()[0], ax.get_ylim()[1]])
+        return pred_line, cursor
+
+    ani = FuncAnimation(
+        fig, update, frames=len(x), init_func=init,
+        blit=True, interval=1000 / fps
+    )
+
+    # 저장
+    try:
+        ani.save(out_path, fps=fps, extra_args=['-vcodec', 'libx264'])
+    except Exception:
+        from matplotlib.animation import PillowWriter
+        gif_path = out_path.rsplit('.', 1)[0] + '.gif'
+        ani.save(gif_path, writer=PillowWriter(fps=fps))
+        print(f"ffmpeg이 없어 GIF로 저장했습니다: {gif_path}")
+    finally:
+        plt.close(fig)
+    # 사용 예시
+    # animate_comparison('P', y_ts, y_ps, classes, out_path='comparison.mp4', fps=15)
 
 def train_model(model, train_loader, test_loader, criterion, optimizer, num_epochs):
     train_losses = []  # 각 epoch의 training loss 기록

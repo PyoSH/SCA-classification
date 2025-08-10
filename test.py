@@ -13,15 +13,13 @@ from copy import deepcopy
 
 # 디바이스 설정: Apple Silicon의 MPS, CUDA, 또는 CPU
 device = None
-# if torch.backends.mps.is_available():
-#     device = torch.device("mps")
-# elif torch.cuda.is_available():
-#     device = torch.device("cuda")
-#     logger.info(f'GPU device found: {torch.cuda.get_device_name(0)}')
-# else:
-#     device = torch.device("cpu")
-device = torch.device("cpu")
-# device = torch.device("cuda")
+if torch.backends.mps.is_available():
+    device = torch.device("mps")
+elif torch.cuda.is_available():
+    device = torch.device("cuda")
+    logger.info(f'GPU device found: {torch.cuda.get_device_name(0)}')
+else:
+    device = torch.device("cpu")
 logger.info(f'selected device: {device}')
 
 parser = argparse.ArgumentParser(description='Running audio classification')
