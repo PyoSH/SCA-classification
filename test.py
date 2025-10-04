@@ -70,7 +70,8 @@ if __name__ == '__main__':
     else:
         raise ValueError(f"Model type {model_type} is not recognized.")
 
-    model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
+    # model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
+    model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, map_location='cpu'))
     model.eval()
 
     data_law = np.load(cfg.PATH.TEST_PATH)

@@ -97,9 +97,9 @@ def eval_metrics_device(model, test_loader, classes, device):
                 y_trues = np.concatenate((y_trues, labels_np), axis=0)
                 y_preds = np.concatenate((y_preds, pred_np), axis=0)
 
-    # plot_comparison(model.name, y_trues, y_preds, classes=classes)
-    animate_comparison(model.name, y_trues, y_preds, classes=classes, out_path='B2_small_comp.mp4', fps=10)
-    plot_cm(model.name, y_trues, y_preds, classes=classes)
+    plot_comparison(model.name, y_trues, y_preds, classes=classes)
+    # animate_comparison(model.name, y_trues, y_preds, classes=classes, out_path='B2_small_comp.mp4', fps=10)
+    # plot_cm(model.name, y_trues, y_preds, classes=classes)
 
     return metrics.classification_report(y_trues, y_preds, zero_division=0)
 
@@ -153,11 +153,12 @@ def plot_comparison(model_type, y_ts, y_ps, classes, show='True'):
 
     plt.subplot(2, 1, 1)
     plt.plot(x, y_ts, color='red', linestyle='-', marker='', label='GT', linewidth=1)
-    plt.xlabel('Audio frame')
-    plt.ylabel('Operational situation')
+    plt.xlabel('Audio frame', fontsize=14)
+    plt.ylabel('Operational situation', fontsize=14)
     plt.yticks(ticks=np.arange(len(classes)), labels=classes)
-    plt.legend()
-    plt.title('Comparison of real-time prediction and GT')
+    plt.tick_params(axis='both', which='major', labelsize=16)
+    # plt.legend()
+    # plt.title('Comparison of real-time prediction and GT')
 
     plt.subplot(2, 1, 2)
     if model_type == 'B1':
@@ -176,16 +177,18 @@ def plot_comparison(model_type, y_ts, y_ps, classes, show='True'):
         plt.plot(x, y_ps, color='#e377c2', linestyle='-', marker='', label='Proposed', linewidth=1)
 
     # Show the legend
-    plt.legend()
+    # plt.legend()
 
-    plt.xlabel('Audio frame')
-    plt.ylabel('Operational situation')
+    plt.xlabel('Audio frame', fontsize=14)
+    plt.ylabel('Operational situation', fontsize=14)
 
     plt.yticks(ticks=np.arange(len(classes)), labels=classes)
-    plt.legend()
+    plt.tick_params(axis='both', which='major', labelsize=16)
+    # plt.legend()
 
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    plt.savefig("/Users/seunghyunpyo/PycharmProjects/rnn_followup/pics/testings")
 
 from matplotlib.ticker import MaxNLocator
 

@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+import time
 
 import plotly.express as px
 import pandas as pd
@@ -309,13 +309,18 @@ def plot_tsne(features, labels, class_names=None, perplexity=30, title='t-SNE Vi
                     label=class_names[int(label)] if class_names else f'Class {label}',
                     alpha=0.6, s=100)
 
-    plt.title(title)
-    plt.legend()
+    # plt.title(title)
+    # plt.legend()
     plt.grid(True)
-    plt.xlabel("TSNE 1")
-    plt.ylabel("TSNE 2")
+    plt.xlim(-25, 25)
+    plt.ylim(-20, 20)
+
+    plt.xlabel("TSNE 1", fontsize=26)
+    plt.ylabel("TSNE 2", fontsize=26)
+    plt.tick_params(axis='both', which='major', labelsize=25)
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    plt.savefig(f'/Users/seunghyunpyo/PycharmProjects/rnn_followup/pics/t_SNE/{time.time()}.png')
 
 def plot_tsne_3d(features, labels, class_names=None, perplexity=30, title='t-SNE 3D Visualization'):
     """
