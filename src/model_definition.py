@@ -345,3 +345,140 @@ class P2(nn.Module):
         lstm_out, _ = self.lstm(combined)
         out = self.fc(lstm_out[:, -1, :])
         return out
+
+class SVM(nn.Module):
+    '''
+    MFCC+LSTM
+    '''
+    def __init__(self, output_dim):
+        super(SVM, self).__init__()
+        self.name = "SVM"
+
+        # SVM
+        self.feature_dim = 40 *2
+        self.fc = nn.Linear(self.feature_dim, output_dim)
+
+        # torchaudio.transforms.MFCC 초기화
+        self.mfcc_transform = torchaudio.transforms.MFCC(
+            sample_rate=44100,
+            n_mfcc=40,
+            melkwargs={"n_fft": 1024, "hop_length": 256, "n_mels": 40}  # n_mels와 n_freqs 조정
+        )
+
+    def forward(self, x):
+        # 1. x의 shape을 (batch_size * n_frames, 4410)로 변경하여 MFCC 계산을 위한 형태로 변환
+        x_reshaped = x.view(-1, 4410)  # (batch_size * n_frames, 4410)
+
+        # 2. MFCC 계산
+        mfcc_features = self.mfcc_transform(x_reshaped)  # MFCC 계산
+
+        ### 3. statistical pooling 수행
+        # 3.1 시간 축(dim=2)에 대해 평균(Mean) 계산
+        mean_features = torch.mean(mfcc_features, dim=2)
+        # mean_features.shape: torch.Size([32, 40])
+
+        # 3.2 시간 축(dim=2)에 대해 표준편차(StdDev) 계산
+        std_features = torch.std(mfcc_features, dim=2)
+        # std_features.shape: torch.Size([32, 40])
+
+        # 3.3 두 특징을 특징 축(dim=1) 기준으로 결합
+        # (32, 40)과 (32, 40)을 합쳐 (32, 80)으로 만듦
+        pooled_vector = torch.cat((mean_features, std_features), dim=1)
+
+        # 4. SVM 연산
+        out = self.fc(pooled_vector)
+
+        return out
+
+class AST(nn.Module):
+    def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
+        super(AST, self).__init__()
+        self.name = "AST"
+
+        self.svm = nn.LinearSVC(input_dim, hidden_dim, num_layers, batch_first=True, dropout=0.1)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+
+        # torchaudio.transforms.MFCC 초기화
+        self.mfcc_transform = torchaudio.transforms.MFCC(
+            sample_rate=44100,
+            n_mfcc=40,
+            melkwargs={"n_fft": 1024, "hop_length": 256, "n_mels": 40}  # n_mels와 n_freqs 조정
+        )
+
+    def forward(self, x):
+        # 1. x의 shape을 (batch_size * n_frames, 4410)로 변경하여 MFCC 계산을 위한 형태로 변환
+        x_reshaped = x.view(-1, 4410)  # (batch_size * n_frames, 4410)
+
+        # 2. MFCC 계산
+        mfcc_features = self.mfcc_transform(x_reshaped)  # MFCC 계산
+
+        # 3. MFCC는 (batch_size * n_frames, n_mfcc, n_frames) 형태로 반환되므로, 다시 차원 수정
+        mfcc_features = mfcc_features.transpose(1,2)
+
+        # LSTM 연산
+        out, _ = self.lstm(mfcc_features)
+        out = self.fc(out[:, -1, :])
+        return out
+
+from transformers import AutoFeatureExtractor, AutoModelForAudioClassification
+import torchaudio.transforms as T # 1. torchaudio.transforms 임포트
+
+class AST(nn.Module):
+    """
+    Hugging Face의 사전 학습된 AST 모델을 로드하고
+    전처리기(FeatureExtractor)를 포함하는 End-to-End 모듈.
+
+    입력: (Batch, Audio_Length)의 원본 오디오 텐서
+    출력: (Batch, Num_Classes)의 로짓(Logits)
+    """
+
+    def __init__(self, output_dim=4, device=torch.device("cpu")):
+        super(AST, self).__init__()
+        self.name = "AST"
+
+        model_name = "MIT/ast-finetuned-audioset-10-10-0.4593"
+
+        self.feature_extractor = AutoFeatureExtractor.from_pretrained(model_name)
+
+        self.model = AutoModelForAudioClassification.from_pretrained(
+            model_name,
+            num_labels=output_dim,
+            ignore_mismatched_sizes=True
+        ).to(device)
+
+        self.device = device
+
+        # --- [수정 1/2] ---
+        # 44.1kHz (원본) -> 16kHz (AST 요구) 리샘플러를 초기화합니다.
+        self.resampler = T.Resample(
+            orig_freq=44100,
+            new_freq=16000
+        ).to(device)
+        # --- [수정 끝] ---
+
+    def forward(self, x):
+        # x: (Batch_Size, Audio_Length) @ 44100Hz
+
+        # --- [수정 2/2] ---
+        # 1. 리샘플링 (GPU에서 바로 수행)
+        # (Batch, 44.1k_Length) -> (Batch, 16k_Length)
+        x_resampled = self.resampler(x)
+
+        # 2. 전처리 (16kHz로 리샘플링된 오디오 사용)
+        raw_audio_list = [audio.cpu().numpy() for audio in x_resampled]
+
+        inputs = self.feature_extractor(
+            raw_audio_list,
+            sampling_rate=16000,  # 3. 이제 오디오가 16kHz라고 '확인'시켜 줍니다.
+            return_tensors="pt"
+        )
+        # --- [수정 끝] ---
+
+        # 4. 전처리된 입력을 모델 디바이스로 이동
+        inputs = inputs.to(self.device)
+
+        # 5. 모델 추론
+        outputs = self.model(**inputs)
+
+        # 6. 로짓 반환
+        return outputs.logits

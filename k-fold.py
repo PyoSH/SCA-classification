@@ -116,13 +116,28 @@ if __name__ == '__main__':
         elif model_type == 'B4':
             model = B4(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
         elif model_type == 'P':
-            # model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-            model = P2(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+            model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+            # model = P2(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        elif model_type == 'SVM':
+            model = SVM(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        elif model_type == 'AST':
+            model = AST(output_dim=cfg.HYPERPARAMS.NUM_CLASSES, device=device).to(device)
         else:
             raise ValueError(f"Model type {model_type} is not recognized.")
 
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-        criterion = nn.CrossEntropyLoss()
+        optimizer = None
+        criterion = None
+
+        if model_type == 'SVM':
+            logger.info("SVM 전용 Loss (MultiMarginLoss) 및 Optimizer (Adam with L2) 사용")
+            criterion = nn.MultiMarginLoss()
+            optimizer = optim.Adam(model.parameters(),
+                                   lr=learning_rate,
+                                   weight_decay=1e-4)
+        else:
+            logger.info(f"기본 Loss (CrossEntropyLoss) 및 Optimizer (Adam) 사용")
+            optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+            criterion = nn.CrossEntropyLoss()
 
         train_loss, test_loss, test_acc = train_model_device(
             model=model, train_loader=train_loader, test_loader=test_loader, criterion=criterion,

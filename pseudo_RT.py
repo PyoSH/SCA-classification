@@ -68,6 +68,10 @@ if __name__ == '__main__':
         model = B4(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
     elif model_type == 'P':
         model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'SVM':
+        model = SVM(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'AST':
+        model = AST(output_dim=cfg.HYPERPARAMS.NUM_CLASSES, device=device).to(device)
     else:
         raise ValueError(f"Model type {model_type} is not recognized.")
 
@@ -76,7 +80,7 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(cfg.PATH.MODEL_PATH, weights_only=True))
     model.eval()
 
-    data_raw = np.load(cfg.PATH.INSPECTION_PATH)
+    data_raw = np.load(cfg.PATH.TEST_PATH)
     data_audio = data_raw[:, 0:-1]
     data_label = data_raw[:, -1]
     data_audio_std = deepcopy(data_audio)

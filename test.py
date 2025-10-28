@@ -67,6 +67,10 @@ if __name__ == '__main__':
     elif model_type == 'P':
         model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
         # model = P2(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'SVM':
+        model = SVM(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'AST':
+        model = AST(output_dim=cfg.HYPERPARAMS.NUM_CLASSES, device=device).to(device)
     else:
         raise ValueError(f"Model type {model_type} is not recognized.")
 
@@ -79,7 +83,7 @@ if __name__ == '__main__':
     data_label = data_law[:, -1]
 
     test_set = None
-    is_HybridModel = True
+    is_HybridModel = True # 우선 is_hybridModel이라는 이름이 붙었지만, 실질적으로 모든 baseline model들은 standization을 거친 것만 사용.
 
     if is_HybridModel:
         data_audio_std = deepcopy(data_audio)

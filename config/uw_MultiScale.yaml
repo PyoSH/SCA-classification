@@ -19,7 +19,7 @@ PATH:
 #  INSPECTION_PATH: ./data/dataset/inspection/uw_44kHz_500ms_cutting.npy
 #  INSPECTION_PATH: ./data/dataset/inspection/uw_44kHz_1000ms_cutting.npy
 
-  MODEL_PATH: ./results/multi_scale/AMS-CLSTM_mel_init_SML_100ms.pth #this model will be made in path
+  MODEL_PATH: ./results/multi_scale/AMS-CLSTM_mel_init_SL_100ms_noFix.pth #this model will be made in path
 HYPERPARAMS:
   MODELTYPE: 'C-MultiScale'
   HIDDEN_SIZE: 128

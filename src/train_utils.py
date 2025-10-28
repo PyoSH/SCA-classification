@@ -175,6 +175,11 @@ def plot_comparison(model_type, y_ts, y_ps, classes, show='True'):
         plt.plot(x, y_ps, color='#8c564b', linestyle='-', marker='', label='MultiScale+Mel init', linewidth=1)
     elif model_type == 'P':
         plt.plot(x, y_ps, color='#e377c2', linestyle='-', marker='', label='Proposed', linewidth=1)
+    elif model_type == 'SVM':
+        plt.plot(x, y_ps, color='green', linestyle='-', marker='', label='MFCC+SVM', linewidth=1)
+    elif model_type == 'AST':
+        plt.plot(x, y_ps, color='purple', linestyle='-', marker='', label='AST', linewidth=1)
+
 
     # Show the legend
     # plt.legend()
@@ -187,8 +192,8 @@ def plot_comparison(model_type, y_ts, y_ps, classes, show='True'):
     # plt.legend()
 
     plt.tight_layout()
-    # plt.show()
-    plt.savefig("/Users/seunghyunpyo/PycharmProjects/rnn_followup/pics/testings")
+    plt.show()
+    # plt.savefig("/Users/seunghyunpyo/PycharmProjects/rnn_followup/pics/testings")
 
 from matplotlib.ticker import MaxNLocator
 
@@ -255,6 +260,60 @@ def animate_comparison(model_type, y_ts, y_ps, classes, out_path="comparison.mp4
         plt.close(fig)
     # 사용 예시
     # animate_comparison('P', y_ts, y_ps, classes, out_path='comparison.mp4', fps=15)
+
+def animate_gt(y_ts, classes, out_path="gt.mp4", fps=15):
+    x = np.arange(len(y_ts))
+
+    # Figure & Axis
+    fig, ax = plt.subplots(figsize=(12, 4))
+    ax.set_xlim(0, len(x)-1)
+    ax.set_ylim(-0.5, len(classes)-0.5)
+    ax.set_yticks(np.arange(len(classes)))
+    ax.set_yticklabels(classes)
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.set_xlabel('Audio frame')
+    ax.set_ylabel('Operational situation')
+    ax.set_title('Ground Truth (GT)')
+
+    # GT 라인 (빨간색)
+    (gt_line,) = ax.plot([], [], color='red', linewidth=1,
+                         label='GT', drawstyle='steps-post')
+
+    # 현재 프레임 표시선
+    (cursor,) = ax.plot([], [], 'k--', alpha=0.3)
+
+    ax.legend(loc='upper left')
+
+    # 초기화
+    def init():
+        gt_line.set_data([], [])
+        cursor.set_data([], [])
+        return gt_line, cursor
+
+    # 업데이트
+    def update(frame):
+        gt_line.set_data(x[:frame+1], y_ts[:frame+1])
+        cursor.set_data([frame, frame], [ax.get_ylim()[0], ax.get_ylim()[1]])
+        return gt_line, cursor
+
+    ani = FuncAnimation(
+        fig, update, frames=len(x), init_func=init,
+        blit=True, interval=1000/fps
+    )
+
+    # 저장
+    try:
+        ani.save(out_path, fps=fps, extra_args=['-vcodec', 'libx264'])
+    except Exception:
+        from matplotlib.animation import PillowWriter
+        gif_path = out_path.rsplit('.', 1)[0] + '.gif'
+        ani.save(gif_path, writer=PillowWriter(fps=fps))
+        print(f"ffmpeg이 없어 GIF로 저장했습니다: {gif_path}")
+    finally:
+        plt.close(fig)
+
+    # 사용 예시
+    # animate_gt(y_ts, classes, out_path='gt.mp4', fps=15)
 
 def train_model(model, train_loader, test_loader, criterion, optimizer, num_epochs):
     train_losses = []  # 각 epoch의 training loss 기록

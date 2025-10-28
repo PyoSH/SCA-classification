@@ -89,23 +89,34 @@ if __name__ == '__main__':
 
     # 모델 인스턴스 생성
     model = None
-    if cfg.HYPERPARAMS.MODELTYPE == 'RNN':
-        model = RNNModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
-                         num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
-                         output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'LSTM':
-        model = LSTMModel(input_dim=mfcc_const.n_mfcc, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
-                          num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
-                          output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-RNN':
-        model = CRNN_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-LSTM':
-        model = CLSTM_3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-test':
-        model = C_test(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-    elif cfg.HYPERPARAMS.MODELTYPE == 'C-MultiScale':
-        # model = C_MultiScale_1st(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        model = C_MultiScale_2nd(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    # 모델 선택
+    model_type = cfg.HYPERPARAMS.MODELTYPE
+
+    if model_type == 'B1':
+        model = B1(input_dim=40, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                   num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                   output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B2-small':
+        model = B2_small(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B2-middle':
+        model = B2_middle(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B2-large':
+        model = B2_large(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B3':
+        model = B3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'B4':
+        model = B4(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'P':
+        # model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+        model = P2(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'SVM':
+        model = SVM(input_dim=40, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                   num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                   output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+    elif model_type == 'AST':
+        model = AST()
+    else:
+        raise ValueError(f"Model type {model_type} is not recognized.")
 
     # 손실 함수 및 최적화 알고리즘 정의
     criterion = nn.CrossEntropyLoss()
