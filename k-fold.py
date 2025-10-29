@@ -83,76 +83,79 @@ if __name__ == '__main__':
     model = None
 
     for fold, (train_idx, val_idx) in enumerate(kfold.split(data_audio_input, data_label)):
-        logger.info(f"Fold [{fold+1}/{k_folds}] 학습 시작...")
-
-
-        X_train, y_train = data_audio_input[train_idx], data_label[train_idx]
-        X_val, y_val = data_audio_input[val_idx], data_label[val_idx]
-
-        train_dataset = RawWaveformDataset(X_train, y_train)
-        valid_dataset = RawWaveformDataset(X_val, y_val)
-
-        # ✅ 데이터로더 생성
-        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-        test_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)
-
-        # ✅ 모델 초기화 (각 Fold마다 새로 학습해야 함)
-        # config에서 model type을 가져오기
-        model_type = cfg.HYPERPARAMS.MODELTYPE
-
-        # 모델 선택
-        if model_type == 'B1':
-            model = B1(input_dim=40, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
-                       num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
-                       output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        elif model_type == 'B2-small':
-            model = B2_small(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        elif model_type == 'B2-middle':
-            model = B2_middle(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        elif model_type == 'B2-large':
-            model = B2_large(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        elif model_type == 'B3':
-            model = B3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        elif model_type == 'B4':
-            model = B4(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        elif model_type == 'P':
-            model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-            # model = P2(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        elif model_type == 'SVM':
-            model = SVM(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
-        elif model_type == 'AST':
-            model = AST(output_dim=cfg.HYPERPARAMS.NUM_CLASSES, device=device).to(device)
+        if fold+1 == 1:
+            logger.info(f"Fold [{fold+1}/{k_folds}] 학습 시작...")
+    
+    
+            X_train, y_train = data_audio_input[train_idx], data_label[train_idx]
+            X_val, y_val = data_audio_input[val_idx], data_label[val_idx]
+    
+            train_dataset = RawWaveformDataset(X_train, y_train)
+            valid_dataset = RawWaveformDataset(X_val, y_val)
+    
+            # ✅ 데이터로더 생성
+            train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+            test_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)
+    
+            # ✅ 모델 초기화 (각 Fold마다 새로 학습해야 함)
+            # config에서 model type을 가져오기
+            model_type = cfg.HYPERPARAMS.MODELTYPE
+    
+            # 모델 선택
+            if model_type == 'B1':
+                model = B1(input_dim=40, hidden_dim=cfg.HYPERPARAMS.HIDDEN_SIZE,
+                           num_layers=cfg.HYPERPARAMS.NUM_LAYERS,
+                           output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+            elif model_type == 'B2-small':
+                model = B2_small(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+            elif model_type == 'B2-middle':
+                model = B2_middle(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+            elif model_type == 'B2-large':
+                model = B2_large(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+            elif model_type == 'B3':
+                model = B3(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+            elif model_type == 'B4':
+                model = B4(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+            elif model_type == 'P':
+                model = P(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+                # model = P2(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+            elif model_type == 'SVM':
+                model = SVM(output_dim=cfg.HYPERPARAMS.NUM_CLASSES).to(device)
+            elif model_type == 'AST':
+                model = AST(output_dim=cfg.HYPERPARAMS.NUM_CLASSES, device=device).to(device)
+            else:
+                raise ValueError(f"Model type {model_type} is not recognized.")
+    
+            optimizer = None
+            criterion = None
+    
+            if model_type == 'SVM':
+                logger.info("SVM 전용 Loss (MultiMarginLoss) 및 Optimizer (Adam with L2) 사용")
+                criterion = nn.MultiMarginLoss()
+                optimizer = optim.Adam(model.parameters(),
+                                       lr=learning_rate,
+                                       weight_decay=1e-4)
+            else:
+                logger.info(f"기본 Loss (CrossEntropyLoss) 및 Optimizer (Adam) 사용")
+                optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+                criterion = nn.CrossEntropyLoss()
+    
+            train_loss, test_loss, test_acc = train_model_device(
+                model=model, train_loader=train_loader, test_loader=test_loader, criterion=criterion,
+                optimizer=optimizer, num_epochs=cfg.HYPERPARAMS.NUM_EPOCHS, device=device)
+    
+            all_train_losses.append(train_loss)
+            all_test_losses.append(test_loss)
+            all_test_accs.append(test_acc)
+    
+            # print(eval_metrics_device(model, test_loader, cfg.HYPERPARAMS.LABEL_CLASS, device))
+    
+            # ✅ Fold별 모델 저장 (옵션)
+            # model_path = f"{cfg.PATH.MODEL_PATH.removesuffix('.pth')}_fold{fold+1}.pth"
+            # torch.save(model.state_dzict(), model_path)
+            # logger.info(f"Fold [{fold+1}] 모델 저장 완료: {model_path}")
         else:
-            raise ValueError(f"Model type {model_type} is not recognized.")
-
-        optimizer = None
-        criterion = None
-
-        if model_type == 'SVM':
-            logger.info("SVM 전용 Loss (MultiMarginLoss) 및 Optimizer (Adam with L2) 사용")
-            criterion = nn.MultiMarginLoss()
-            optimizer = optim.Adam(model.parameters(),
-                                   lr=learning_rate,
-                                   weight_decay=1e-4)
-        else:
-            logger.info(f"기본 Loss (CrossEntropyLoss) 및 Optimizer (Adam) 사용")
-            optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-            criterion = nn.CrossEntropyLoss()
-
-        train_loss, test_loss, test_acc = train_model_device(
-            model=model, train_loader=train_loader, test_loader=test_loader, criterion=criterion,
-            optimizer=optimizer, num_epochs=cfg.HYPERPARAMS.NUM_EPOCHS, device=device)
-
-        all_train_losses.append(train_loss)
-        all_test_losses.append(test_loss)
-        all_test_accs.append(test_acc)
-
-        # print(eval_metrics_device(model, test_loader, cfg.HYPERPARAMS.LABEL_CLASS, device))
-
-        # ✅ Fold별 모델 저장 (옵션)
-        model_path = f"{cfg.PATH.MODEL_PATH.removesuffix('.pth')}_fold{fold+1}.pth"
-        torch.save(model.state_dict(), model_path)
-        logger.info(f"Fold [{fold+1}] 모델 저장 완료: {model_path}")
+            print("그냥 한 번만 해")
 
     # ✅ 최종 평균 성능 계산
     plot_kfold_curves(model.name, all_train_losses, all_test_losses, all_test_accs)

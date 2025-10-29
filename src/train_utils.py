@@ -353,19 +353,23 @@ def train_model_device(model, train_loader, test_loader, criterion, optimizer, n
         model.train()  # 모델을 training 모드로 설정
 
         running_loss = 0.0
+        cnt = 0
         for inputs, labels in train_loader:
-            inputs, labels = inputs.to(device), labels.to(device)
 
-            optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+            if cnt == len(train_loader)-1:
+                inputs, labels = inputs.to(device), labels.to(device)
 
-            running_loss += loss.item()
+                optimizer.zero_grad()
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+
+                running_loss += loss.item()
+            cnt +=1
 
         # 현재 epoch의 평균 training loss 기록
-        epoch_loss = running_loss / len(train_loader)
+        epoch_loss = running_loss / (len(train_loader)-1)
         train_losses.append(epoch_loss)
 
         # 현재 epoch의 test accuracy 계산 및 기록
