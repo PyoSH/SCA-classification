@@ -4,9 +4,9 @@
 ```
 author = {Seunghyun Pyo and Tae-Kyeong Yeu and Yeongjun Lee and Jong-Boo Han and Daegil Park}
 title = {Multi-scale Convolutional Recurrent Neural Networks for Real-Time Classification of the Seabed Crushing Process}
-journal = {RA-L}
+journal = {IEEE Oceanic Engineering}
 year = {2025}
-note = {[In Submission]}
+note = {[Under Review]}
 ```
 ## What is Seabed Crushing?
 <img width="1897" height="688" alt="Image" src="https://github.com/user-attachments/assets/3a68440d-2dc6-42be-a342-c43b233855df" />
